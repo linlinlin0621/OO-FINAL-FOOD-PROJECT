@@ -2328,6 +2328,7 @@
         }
 
         // 單一職責 3：整理「解鎖角色、造型、車車與小鎮設施」的預設值與容錯補齊
+       // 單一職責 3：整理「解鎖角色、造型、車車與小鎮設施」的預設值與容錯補齊
         function normalizeUnlockState(rawUnlocks) {
             const defaultState = {
                 mascots: ['shrimp', 'rice'],
@@ -2339,7 +2340,8 @@
                 decors: ['ferris_wheel'],
                 activeDecorsOnMap: ['ferris_wheel'],
                 townAtmosphere: 'day',
-                customTownPositions: {}
+                customTownPositions: {},
+                townVisibleStores: [...favoriteStores]
             };
 
             if (!rawUnlocks || typeof rawUnlocks !== 'object') return defaultState;
@@ -2353,6 +2355,10 @@
                 ? rawUnlocks.decors
                 : ['ferris_wheel'];
 
+            const visibleStores = Array.isArray(rawUnlocks.townVisibleStores)
+                ? rawUnlocks.townVisibleStores.filter(name => favoriteStores.includes(name))
+                : [...favoriteStores];
+
             return {
                 mascots: Array.isArray(rawUnlocks.mascots) && rawUnlocks.mascots.length ? rawUnlocks.mascots : ['shrimp', 'rice'],
                 companion: rawUnlocks.companion || 'shrimp',
@@ -2363,7 +2369,8 @@
                 decors: finalDecors,
                 activeDecorsOnMap: Array.isArray(rawUnlocks.activeDecorsOnMap) ? rawUnlocks.activeDecorsOnMap : [...finalDecors],
                 townAtmosphere: rawUnlocks.townAtmosphere || 'day',
-                customTownPositions: rawUnlocks.customTownPositions || {}
+                customTownPositions: rawUnlocks.customTownPositions || {},
+                townVisibleStores: visibleStores
             };
         }
 
@@ -4370,6 +4377,101 @@
             }
         }
 
+        let isTownStorePanelExpanded = false;
+
+        // 切換單一收藏店家是否顯示在蝦米小鎮上
+        function toggleStoreOnTownMap(storeName) {
+            if (!Array.isArray(unlockState.townVisibleStores)) {
+                unlockState.townVisibleStores = [...favoriteStores];
+            }
+            const idx = unlockState.townVisibleStores.indexOf(storeName);
+            if (idx >= 0) {
+                unlockState.townVisibleStores.splice(idx, 1);
+                showSumikkoToast(`已暫時把「${storeName}」從小鎮地圖隱藏`);
+            } else {
+                unlockState.townVisibleStores.push(storeName);
+                showSumikkoToast(`已讓「${storeName}」出現在蝦米小鎮！`);
+            }
+            saveUnlocksToStorage();
+            initOrUpdateFullMap();
+        }
+
+        // 一鍵全選或全部隱藏收藏店家
+        function setAllTownFavoriteStores(showAll) {
+            unlockState.townVisibleStores = showAll ? [...favoriteStores] : [];
+            saveUnlocksToStorage();
+            initOrUpdateFullMap();
+            showSumikkoToast(showAll ? '已將所有收藏好店顯示在蝦米小鎮！' : '已暫時隱藏小鎮上的所有店家（保留小夥伴與設施）');
+        }
+
+        function toggleTownStorePanelExpand() {
+            isTownStorePanelExpanded = !isTownStorePanelExpanded;
+            renderTownStoreManagerUI();
+        }
+
+        // 自動在地圖上方渲染「🏠 小鎮入住店家管理」控制盒
+        function renderTownStoreManagerUI() {
+            const mapEl = document.getElementById('full-explore-map');
+            if (!mapEl || !mapEl.parentElement) return;
+
+            let panel = document.getElementById('town-store-manager-box');
+            if (!panel) {
+                panel = document.createElement('div');
+                panel.id = 'town-store-manager-box';
+                panel.className = 'sumikko-card-sm bg-[#FFFDF9] p-3 mb-3 border-2 border-[#5C4938]';
+                mapEl.parentElement.insertBefore(panel, mapEl);
+            }
+
+            const visibleList = Array.isArray(unlockState.townVisibleStores) ? unlockState.townVisibleStores : [...favoriteStores];
+            const activeFavStores = stores.filter(s => favoriteStores.includes(s.name));
+            const shownCount = activeFavStores.filter(s => visibleList.includes(s.name)).length;
+
+            if (activeFavStores.length === 0) {
+                panel.innerHTML = `
+                    <div class="flex flex-wrap items-center justify-between gap-2 text-xs font-black text-[#5C4938]">
+                        <span>🏠 小鎮入住店家管理：目前還沒有收藏任何店家喔！</span>
+                        <span class="text-[#857262]">（去轉盤或圖鑑幫喜歡的店按愛心「收進口袋」，就會搬進蝦米小鎮囉！）</span>
+                    </div>
+                `;
+                return;
+            }
+
+            const pillsHtml = activeFavStores.map(s => {
+                const isShown = visibleList.includes(s.name);
+                const encodedName = encodeSafe(s.name);
+                return `
+                    <button type="button" onclick="toggleStoreOnTownMap(decodeURIComponent('${encodedName}'))"
+                        class="px-3 py-1 rounded-full border-2 border-[#5C4938] text-xs font-black flex items-center gap-1.5 transition ${isShown ? 'bg-[#F9C5BD] text-[#5C4938] shadow-[0_2px_0_#5C4938]' : 'bg-white text-[#857262] opacity-65'}">
+                        <span>${isShown ? '❤️ 顯示中' : '🤍 已隱藏'}</span>
+                        <span>${s.name}</span>
+                    </button>
+                `;
+            }).join('');
+
+            panel.innerHTML = `
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs sm:text-sm font-black text-[#5C4938]">🏠 小鎮入住店家管理</span>
+                        <span class="px-2.5 py-0.5 rounded-full bg-[#FCE8A6] border border-[#5C4938] text-[11px] font-black text-[#5C4938]">
+                            顯示 ${shownCount} / ${activeFavStores.length} 間收藏店
+                        </span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        <button type="button" onclick="setAllTownFavoriteStores(true)" class="px-2.5 py-1 rounded-full bg-[#A8D8B9] border border-[#5C4938] text-[11px] font-black text-[#5C4938] hover:opacity-90">全部顯示</button>
+                        <button type="button" onclick="setAllTownFavoriteStores(false)" class="px-2.5 py-1 rounded-full bg-white border border-[#5C4938] text-[11px] font-black text-[#857262] hover:text-[#5C4938]">全部隱藏</button>
+                        <button type="button" onclick="toggleTownStorePanelExpand()" class="px-2.5 py-1 rounded-full bg-[#FCE8A6] border border-[#5C4938] text-[11px] font-black text-[#5C4938]">
+                            ${isTownStorePanelExpanded ? '收合名單 ▲' : '挑選顯示店家 ▼'}
+                        </button>
+                    </div>
+                </div>
+                ${isTownStorePanelExpanded ? `
+                    <div class="mt-2.5 pt-2.5 border-t border-dashed border-[#DFD5C6] flex flex-wrap gap-2">
+                        ${pillsHtml}
+                    </div>
+                ` : ''}
+            `;
+        }
+
         function initOrUpdateFullMap() {
             const container = document.getElementById('full-explore-map');
             if (!container || typeof L === 'undefined') return;
@@ -4389,6 +4491,9 @@
                 if (townLifeLayer) townLifeLayer.clearLayers();
             }
 
+            // 渲染地圖上方的「小鎮入住店家管理」面板
+            renderTownStoreManagerUI();
+
             // 若使用者已定位，繪製阿蝦所在地旗幟
             if (userCoords && userCoords.lat && userCoords.lng) {
                 const originMarker = L.marker([userCoords.lat, userCoords.lng], {
@@ -4398,30 +4503,31 @@
                 originMarker.bindPopup(`<div class="font-black text-xs text-[#5C4938] p-1">出發點：${userCoords.label || '你的所在地'}</div>`);
             }
 
-            // 顯示所有具有經緯度的店家：
-            // 1. 口袋收藏店家 -> 顯示「愛心炸蝦」地標
-            // 2. 當前被選中店家 -> 顯示「米米飯糰」地標
-            // 3. 其他未選中店家 -> 顯示「可愛小房子」
+            // 只顯示「已收藏」且「勾選顯示於小鎮」的店家
+            const visibleStoreNames = Array.isArray(unlockState.townVisibleStores)
+                ? unlockState.townVisibleStores
+                : [...favoriteStores];
+
             let validCount = 0;
             let selectedMarker = null;
 
             stores.forEach(s => {
                 if (!s.lat || !s.lng || isNaN(s.lat) || isNaN(s.lng)) return;
+                if (!favoriteStores.includes(s.name)) return;
+                if (!visibleStoreNames.includes(s.name)) return;
+
                 validCount++;
                 const sLat = s.mapLat || s.lat;
                 const sLng = s.mapLng || s.lng;
-                const isFav = favoriteStores.includes(s.name);
                 const isSelected = (lastDrawnStoreName === s.name);
                 const rev = storeReviews[s.name] || { rating: 0, stamped: false };
                 const encodedName = encodeSafe(s.name);
 
-                let iconKind = 'store-house';
-                if (isFav) iconKind = 'fav-store';
-                else if (isSelected) iconKind = 'store-rice';
+                const iconKind = isSelected ? 'store-rice' : 'fav-store';
 
                 const marker = L.marker([sLat, sLng], {
                     icon: createSumikkoMapIcon(iconKind, s.type, isSelected),
-                    zIndexOffset: isSelected ? 900 : (isFav ? 400 : 100)
+                    zIndexOffset: isSelected ? 900 : 400
                 }).addTo(fullMapMarkersLayer);
 
                 const orderUrl = getStoreOrderLink(s);
@@ -4430,7 +4536,7 @@
                     <div class="p-1.5 min-w-[190px]">
                         <div class="flex items-center justify-between gap-1">
                             <span class="text-xs font-black text-[#E87A64]">${s.type} · 均消 ~${s.price_level}元</span>
-                            ${isFav ? `<span class="px-1.5 py-0.2 rounded-full bg-[#F9C5BD] border border-[#5C4938] text-[10px] font-black">口袋最愛</span>` : ''}
+                            <span class="px-1.5 py-0.2 rounded-full bg-[#F9C5BD] border border-[#5C4938] text-[10px] font-black">口袋最愛</span>
                         </div>
                         <div class="font-black text-base text-[#5C4938] my-0.5">${s.name}</div>
                         <div class="text-xs font-bold text-[#857262] mb-2">Google ${s.rating} ${rev.stamped ? '· 已蓋完食章' : ''}</div>
@@ -4439,6 +4545,7 @@
                             <button type="button" onclick="openReviewModal(decodeURIComponent('${encodedName}'))" class="px-2.5 py-1 rounded-full bg-[#FCE8A6] border border-[#5C4938] text-[11px] font-black">評鑑蓋章</button>
                             <button type="button" onclick="viewStoreOnWheelCard(decodeURIComponent('${encodedName}'))" class="px-2.5 py-1 rounded-full bg-[#A8D8B9] border border-[#5C4938] text-[11px] font-black">查看詳情</button>
                             ${orderUrl ? `<a href="${orderUrl}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 rounded-full bg-[#F9C5BD] border border-[#5C4938] text-[11px] font-black text-[#5C4938]">線上點餐</a>` : ''}
+                            <button type="button" onclick="toggleStoreOnTownMap(decodeURIComponent('${encodedName}'))" class="px-2.5 py-1 rounded-full bg-white border border-[#5C4938] text-[11px] font-black text-[#857262]">暫時從小鎮隱藏</button>
                         </div>
                     </div>
                 `);
@@ -4458,7 +4565,7 @@
             }
 
             const countText = document.getElementById('full-map-count-text');
-            if (countText) countText.textContent = `蝦米小鎮上共有 ${validCount} 間美食小屋、${unlockState.mascots.length} 位小夥伴與 ${(unlockState.decors || []).length} 座設施`;
+            if (countText) countText.textContent = `蝦米小鎮上目前顯示 ${validCount} 間收藏好店、${unlockState.mascots.length} 位小夥伴與 ${(unlockState.decors || []).length} 座設施`;
         }
         // ==================== 功能 2：蝦米美味評鑑 ＆ 完食印章 Modal (含階段 C 美食拍立得照片上傳) ====================
         function openReviewModal(storeName) {
@@ -4650,15 +4757,24 @@
 
         // ==================== 功能 1 & 4：口袋收藏名單 與 今日蓋海苔被休息名單 ====================
         function toggleFavorite(storeName) {
+            if (!Array.isArray(unlockState.townVisibleStores)) {
+                unlockState.townVisibleStores = [...favoriteStores];
+            }
+
             const idx = favoriteStores.indexOf(storeName);
             if (idx >= 0) {
                 favoriteStores.splice(idx, 1);
-                showSumikkoToast(`已將「${storeName}」從口袋名單移出`);
+                unlockState.townVisibleStores = unlockState.townVisibleStores.filter(n => n !== storeName);
+                showSumikkoToast(`已將「${storeName}」從口袋名單與小鎮移出`);
             } else {
                 favoriteStores.push(storeName);
-                showSumikkoToast(`已把「${storeName}」收進私房口袋名單！`);
+                if (!unlockState.townVisibleStores.includes(storeName)) {
+                    unlockState.townVisibleStores.push(storeName);
+                }
+                showSumikkoToast(`已把「${storeName}」收進口袋並搬進蝦米小鎮！`);
             }
             saveFavoritesToStorage();
+            saveUnlocksToStorage();
 
             // 若當前結果卡正是此店家，即時更新畫面
             if (lastDrawnStoreName === storeName) {
@@ -4670,6 +4786,9 @@
             }
             if (!document.getElementById('tab-panel-pokedex').classList.contains('hidden')) {
                 renderPokedex();
+            }
+            if (fullMapInstance) {
+                initOrUpdateFullMap();
             }
         }
 
