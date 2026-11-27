@@ -5091,7 +5091,45 @@
                     this.handleAction(actionEl.dataset.action, actionEl);
                 });
             }
+            toggleModalAction(action, el) {
+                const modalMap = {
+                    'open-location-picker': () => this.mapCtrl.openLocationPicker(),
+                    'close-location-picker': () => this.modalCtrl.hideModal('location-picker-modal'),
+                    'open-advanced-filter': () => this.advFilterCtrl.open(),
+                    'close-advanced-filter': () => this.advFilterCtrl.close(),
+                    'open-review': () => this.modalCtrl.openReview(el.dataset.store),
+                    'close-review': () => this.modalCtrl.hideModal('review-modal'),
+                    'open-checkin': () => this.modalCtrl.openCheckIn(),
+                    'close-checkin': () => this.modalCtrl.hideModal('checkin-modal'),
+                    'open-add-store': () => this.modalCtrl.openAddStore(),
+                    'close-add-store': () => this.modalCtrl.hideModal('add-store-modal')
+                };
+                const fn = modalMap[action];
+                if (!fn) return false;
+                fn();
+                return true;
+            }
 
+            toggleTownMapAsset(listKey, activeKey, item) {
+                const u = this.userState.unlocks;
+                if (!u[listKey].includes(item.id)) {
+                    if (!this.userState.spendCoins(item.cost)) {
+                        this.notifier.show('蝦米幣不夠喔！');
+                        return;
+                    }
+                    u[listKey].push(item.id);
+                    u[activeKey].push(item.id);
+                } else {
+                    const idx = u[activeKey].indexOf(item.id);
+                    if (idx >= 0) u[activeKey].splice(idx, 1);
+                    else u[activeKey].push(item.id);
+                }
+                this.userState.saveUnlocks();
+                this.collectionCtrl.renderTownShop();
+                this.syncAllUI();
+            }
+
+            if (this.toggleModalAction(action, el)) return;
             handleAction(action, el) {
                 const storeName = el.dataset.store;
                 switch (action) {
@@ -5373,374 +5411,360 @@
     })();
     </script>
     <script>
-(function initShiamiDivinationAddOn() {
-    const TURTLE_STAGE_SVG = `
-        <svg viewBox="0 0 220 200" class="w-full h-full overflow-visible">
-            <!-- 地面軟陰影 -->
-            <ellipse cx="114" cy="168" rx="76" ry="11" fill="#E5DDD0"/>
-            <!-- 兩枚帶方孔的卜卦銅錢 -->
-            <g transform="translate(88, 12)">
-                <circle cx="16" cy="16" r="14" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.2"/>
-                <rect x="11.5" y="11.5" width="9" height="9" rx="1.5" fill="#FAF6F0" stroke="#5C4938" stroke-width="1.8"/>
-            </g>
-            <g transform="translate(132, 24)">
-                <circle cx="16" cy="16" r="14" fill="#F7A072" stroke="#5C4938" stroke-width="2.2"/>
-                <rect x="11.5" y="11.5" width="9" height="9" rx="1.5" fill="#FAF6F0" stroke="#5C4938" stroke-width="1.8"/>
-            </g>
-            <!-- 尖尖小尾巴 -->
-            <path d="M174 134 L194 128 L178 145 Z" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.4" stroke-linejoin="round"/>
-            <!-- 四隻圓胖小龜腳 -->
-            <ellipse cx="78" cy="150" rx="13" ry="9" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.5"/>
-            <ellipse cx="116" cy="153" rx="13" ry="9" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.5"/>
-            <ellipse cx="154" cy="150" rx="13" ry="9" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.5"/>
-            <!-- 探頭出來的呆萌小龜頭 -->
-            <path d="M64 114 C52 104 34 106 28 118 C24 127 30 137 42 138 C52 139 60 134 66 128 Z" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.6" stroke-linejoin="round"/>
-            <circle cx="40" cy="119" r="2.3" fill="#5C4938"/>
-            <path d="M31 124 H35" stroke="#5C4938" stroke-width="1.8" stroke-linecap="round"/>
-            <ellipse cx="43" cy="126" rx="3.4" ry="1.9" fill="#F9C5BD"/>
-            <!-- 圓拱形薄荷綠龜殼＋六角龜甲格紋 -->
-            <path d="M62 134 C62 72 174 72 174 134 Z" fill="#A8D8B9" stroke="#5C4938" stroke-width="3" stroke-linejoin="round"/>
-            <polygon points="118,88 138,100 138,120 118,130 98,120 98,100" fill="#EAF6EE" stroke="#5C4938" stroke-width="2.2"/>
-            <path d="M118 75 V88 M98 100 L74 96 M138 100 L162 96 M98 120 L74 128 M138 120 L162 128" stroke="#5C4938" stroke-width="2.2" stroke-linecap="round"/>
-            <!-- 龜殼底部邊緣 -->
-            <rect x="58" y="130" width="120" height="13" rx="6.5" fill="#F3D39A" stroke="#5C4938" stroke-width="2.6"/>
-        </svg>
-    `;
+    (() => {
+        'use strict';
 
-    const TURTLE_SHOP_SVG = `
-        <svg viewBox="0 0 48 48" class="w-12 h-12">
-            <path d="M38 30 L45 27 L39 34 Z" fill="#FCE8A6" stroke="#5C4938" stroke-width="1.6" stroke-linejoin="round"/>
-            <ellipse cx="18" cy="35" rx="5" ry="3.5" fill="#FCE8A6" stroke="#5C4938" stroke-width="1.8"/>
-            <ellipse cx="32" cy="35" rx="5" ry="3.5" fill="#FCE8A6" stroke="#5C4938" stroke-width="1.8"/>
-            <path d="M15 24 C11 20 5 21 3 26 C2 30 6 33 11 33 L16 30 Z" fill="#FCE8A6" stroke="#5C4938" stroke-width="1.8" stroke-linejoin="round"/>
-            <circle cx="8" cy="26" r="1.3" fill="#5C4938"/>
-            <path d="M14 31 C14 15 38 15 38 31 Z" fill="#A8D8B9" stroke="#5C4938" stroke-width="2"/>
-            <polygon points="26,20 31,23 31,28 26,30 21,28 21,23" fill="#EAF6EE" stroke="#5C4938" stroke-width="1.4"/>
-            <rect x="13" y="30" width="26" height="4" rx="2" fill="#F3D39A" stroke="#5C4938" stroke-width="1.6"/>
-            <circle cx="22" cy="10" r="4.5" fill="#FCE8A6" stroke="#5C4938" stroke-width="1.5"/>
-            <circle cx="33" cy="12" r="4.5" fill="#F7A072" stroke="#5C4938" stroke-width="1.5"/>
-        </svg>
-    `;
-
-    const DIVINATION_ITEMS = [
-        {
-            id: 'wheel',
-            name: '蝦米幸運盲盒轉盤',
-            cost: 0,
-            btnText: '轉動呷蝦米幸運盲盒',
-            desc: '經典 6 格美食盲盒轉盤，由炸蝦尾指針為你指明方向！',
-            svg: `<svg viewBox="0 0 48 48" class="w-12 h-12"><circle cx="24" cy="24" r="18" fill="#F9C5BD" stroke="#5C4938" stroke-width="2.2"/><path d="M24 6V42M6 24H42M11 11L37 37M37 11L11 37" stroke="#5C4938" stroke-width="1.6"/><circle cx="24" cy="24" r="6" fill="#FCE8A6" stroke="#5C4938" stroke-width="2"/></svg>`
-        },
-        {
-            id: 'crystal',
-            name: '米米星空水晶球',
-            cost: 140,
-            btnText: '凝視星空水晶球占卜',
-            desc: '小巫師米米守護的粉紫水晶球，感應宇宙星象為你預言今日必吃好店！',
-            svg: `<svg viewBox="0 0 48 48" class="w-12 h-12"><path d="M13 38H35L38 43H10Z" fill="#F3D39A" stroke="#5C4938" stroke-width="2" stroke-linejoin="round"/><circle cx="24" cy="22" r="15" fill="#D9C8EC" stroke="#5C4938" stroke-width="2.2"/><path d="M16 16Q20 11 25 11" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/><circle cx="24" cy="23" r="5" fill="#FFFFFF" stroke="#5C4938" stroke-width="1.6"/></svg>`
-        },
-        {
-            id: 'tarot',
-            name: '阿蝦命運塔羅牌',
-            cost: 180,
-            btnText: '抽取今日美食塔羅牌',
-            desc: '充滿儀式感的金邊手繪塔羅牌組，洗牌後翻出專屬於你的命定餐廳！',
-            svg: `<svg viewBox="0 0 48 48" class="w-12 h-12"><rect x="10" y="9" width="18" height="28" rx="4" transform="rotate(-10 10 9)" fill="#BBE2F2" stroke="#5C4938" stroke-width="2"/><rect x="19" y="7" width="20" height="30" rx="4" transform="rotate(6 19 7)" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.2"/><circle cx="28" cy="22" r="5" fill="#F7A072" stroke="#5C4938" stroke-width="1.6"/></svg>`
-        },
-        {
-            id: 'tortoise',
-            name: '神算小龜殼卜卦',
-            cost: 220,
-            btnText: '搖動小龜殼擲卦象',
-            desc: '探頭小龜殼搭配龜甲格紋與占卜銅錢，搖出今日飽足感滿分的上上籤！',
-            svg: TURTLE_SHOP_SVG
-        }
-    ];
-
-    const DIV_STORAGE_KEY = 'shiami_divination_tools_v1';
-    let divState = { owned: ['wheel'], active: 'wheel' };
-
-    try {
-        const saved = JSON.parse(localStorage.getItem(DIV_STORAGE_KEY) || 'null');
-        if (saved && Array.isArray(saved.owned) && saved.owned.length) {
-            divState = {
-                owned: Array.from(new Set(['wheel', ...saved.owned])),
-                active: saved.active || 'wheel'
-            };
-        }
-    } catch (e) {}
-
-    function persistDivState() {
-        try {
-            localStorage.setItem(DIV_STORAGE_KEY, JSON.stringify(divState));
-        } catch (e) {}
-    }
-
-    const styleEl = document.createElement('style');
-    styleEl.textContent = `
-        @keyframes divCrystalPulse {
-            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px rgba(217, 200, 236, 0.85)); }
-            50% { transform: scale(1.06); filter: drop-shadow(0 0 18px rgba(247, 160, 114, 0.95)); }
-        }
-        .div-crystal-anim { animation: divCrystalPulse 0.65s ease-in-out infinite; }
-        @keyframes divTarotShuffle {
-            0%, 100% { transform: translateX(0) rotate(0deg); }
-            25% { transform: translateX(-14px) rotate(-8deg); }
-            50% { transform: translateX(14px) rotate(8deg); }
-            75% { transform: translateX(-8px) rotate(-4deg); }
-        }
-        .div-tarot-anim { animation: divTarotShuffle 0.55s ease-in-out infinite; }
-        @keyframes divTortoiseShake {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            20% { transform: translate(-6px, -8px) rotate(-12deg); }
-            40% { transform: translate(6px, -10px) rotate(12deg); }
-            60% { transform: translate(-5px, -6px) rotate(-8deg); }
-            80% { transform: translate(5px, -8px) rotate(8deg); }
-        }
-        .div-tortoise-anim { animation: divTortoiseShake 0.45s ease-in-out infinite; }
-    `;
-    document.head.appendChild(styleEl);
-
-    function mountDivinationStages() {
-        const drawBtn = document.getElementById('btn-draw');
-        if (!drawBtn || document.getElementById('div-extra-stages-wrap')) return;
-        const btnWrap = drawBtn.parentElement;
-        if (!btnWrap || !btnWrap.parentElement) return;
-
-        const stagesHtml = `
-            <div id="div-extra-stages-wrap" class="w-full flex flex-col items-center">
-                <div id="div-stage-crystal" class="hidden relative w-72 h-72 sm:w-80 sm:h-80 my-2 flex-col items-center justify-center cursor-pointer" title="點我占卜">
-                    <div id="div-crystal-orb" class="w-56 h-56 flex items-center justify-center squishy-idle">
-                        <svg viewBox="0 0 220 220" class="w-full h-full overflow-visible">
-                            <ellipse cx="110" cy="202" rx="68" ry="10" fill="#E5DDD0"/>
-                            <path d="M58 178 C64 164 156 164 162 178 L170 194 C150 202 70 202 50 194 Z" fill="#F3D39A" stroke="#5C4938" stroke-width="3" stroke-linejoin="round"/>
-                            <path d="M68 184 H152" stroke="#5C4938" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="6 6"/>
-                            <circle cx="110" cy="106" r="74" fill="#D9C8EC" stroke="#5C4938" stroke-width="3.2"/>
-                            <circle cx="110" cy="106" r="64" fill="#BBE2F2" opacity="0.65"/>
-                            <path d="M66 76 Q82 54 106 54" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
-                            <circle cx="62" cy="88" r="3" fill="#FFFFFF"/>
-                            <path d="M146 72 L149 79 L156 82 L149 85 L146 92 L143 85 L136 82 L143 79 Z" fill="#FCE8A6" stroke="#5C4938" stroke-width="1.5"/>
-                            <g transform="translate(74, 74)">
-                                <path d="M22 14 L36 -6 L50 14 Z" fill="#5C4938" stroke="#5C4938" stroke-width="2" stroke-linejoin="round"/>
-                                <ellipse cx="36" cy="14" rx="20" ry="4.5" fill="#F7A072" stroke="#5C4938" stroke-width="2"/>
-                                <path d="M36 16 C52 16 62 38 60 56 C58 66 48 68 36 68 C24 68 14 66 12 56 C10 38 20 16 36 16 Z" fill="#FFFFFF" stroke="#5C4938" stroke-width="2.4"/>
-                                <rect x="26" y="52" width="20" height="15" rx="2.5" fill="#5C4938"/>
-                                <circle cx="26" cy="40" r="2.3" fill="#5C4938"/><circle cx="46" cy="40" r="2.3" fill="#5C4938"/>
-                                <path d="M33 42 Q36 45 39 42" stroke="#5C4938" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                                <ellipse cx="21" cy="43" rx="3.8" ry="2" fill="#F9C5BD"/><ellipse cx="51" cy="43" rx="3.8" ry="2" fill="#F9C5BD"/>
-                            </g>
-                        </svg>
-                    </div>
-                    <span class="mt-1 px-3.5 py-1 rounded-full bg-[#D9C8EC] border-2 border-[#5C4938] text-xs font-black text-[#5C4938]">✨ 米米星空水晶球（點我占卜）</span>
-                </div>
-
-                <div id="div-stage-tarot" class="hidden relative w-72 h-72 sm:w-80 sm:h-80 my-2 flex-col items-center justify-center cursor-pointer" title="點我翻牌">
-                    <div id="div-tarot-deck" class="flex items-center justify-center gap-2.5 py-2">
-                        <div class="w-20 h-32 rounded-2xl bg-[#BBE2F2] border-[2.5px] border-[#5C4938] shadow-[0_4px_0_#5C4938] p-1.5 -rotate-6">
-                            <div class="w-full h-full rounded-xl border-2 border-dashed border-[#5C4938] bg-[#FFFDF9] flex flex-col items-center justify-center">
-                                <span class="text-[10px] font-black">I. 飯糰月</span>
-                                <span class="text-lg my-1">🍙</span>
-                                <span class="text-[9px] font-bold text-[#857262]">暖胃安神</span>
-                            </div>
-                        </div>
-                        <div class="w-24 h-36 rounded-2xl bg-[#FCE8A6] border-[2.8px] border-[#5C4938] shadow-[0_5px_0_#5C4938] p-1.5 z-10 -translate-y-2">
-                            <div class="w-full h-full rounded-xl border-2 border-dashed border-[#5C4938] bg-[#FFFDF9] flex flex-col items-center justify-center">
-                                <span class="text-[10px] font-black text-[#E87A64]">★ 命運炸蝦 ★</span>
-                                <span class="text-2xl my-1">🍤</span>
-                                <span class="text-[10px] font-black">點擊翻牌</span>
-                            </div>
-                        </div>
-                        <div class="w-20 h-32 rounded-2xl bg-[#F9C5BD] border-[2.5px] border-[#5C4938] shadow-[0_4px_0_#5C4938] p-1.5 rotate-6">
-                            <div class="w-full h-full rounded-xl border-2 border-dashed border-[#5C4938] bg-[#FFFDF9] flex flex-col items-center justify-center">
-                                <span class="text-[10px] font-black">II. 珍珠星</span>
-                                <span class="text-lg my-1">🧋</span>
-                                <span class="text-[9px] font-bold text-[#857262]">甜蜜驚喜</span>
-                            </div>
-                        </div>
-                    </div>
-                    <span class="mt-2 px-3.5 py-1 rounded-full bg-[#FCE8A6] border-2 border-[#5C4938] text-xs font-black text-[#5C4938]">🃏 阿蝦命運塔羅牌（點我翻牌）</span>
-                </div>
-
-                <div id="div-stage-tortoise" class="hidden relative w-72 h-72 sm:w-80 sm:h-80 my-2 flex-col items-center justify-center cursor-pointer" title="點我卜卦">
-                    <div id="div-tortoise-shell" class="w-56 h-52 flex items-center justify-center squishy-idle">
-                        ${TURTLE_STAGE_SVG}
-                    </div>
-                    <span class="mt-1 px-3.5 py-1 rounded-full bg-[#A8D8B9] border-2 border-[#5C4938] text-xs font-black text-[#5C4938]">🐢 神算小龜殼卜卦（點我擲卦）</span>
-                </div>
-
-                <div id="div-quick-bar" class="flex flex-wrap items-center justify-center gap-1.5 mt-1"></div>
-            </div>
+        const TURTLE_STAGE_SVG = `
+            <svg viewBox="0 0 220 200" class="w-full h-full overflow-visible">
+                <ellipse cx="114" cy="168" rx="76" ry="11" fill="#E5DDD0"/>
+                <g transform="translate(88, 12)">
+                    <circle cx="16" cy="16" r="14" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.2"/>
+                    <rect x="11.5" y="11.5" width="9" height="9" rx="1.5" fill="#FAF6F0" stroke="#5C4938" stroke-width="1.8"/>
+                </g>
+                <g transform="translate(132, 24)">
+                    <circle cx="16" cy="16" r="14" fill="#F7A072" stroke="#5C4938" stroke-width="2.2"/>
+                    <rect x="11.5" y="11.5" width="9" height="9" rx="1.5" fill="#FAF6F0" stroke="#5C4938" stroke-width="1.8"/>
+                </g>
+                <path d="M174 134 L194 128 L178 145 Z" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.4" stroke-linejoin="round"/>
+                <ellipse cx="78" cy="150" rx="13" ry="9" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.5"/>
+                <ellipse cx="116" cy="153" rx="13" ry="9" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.5"/>
+                <ellipse cx="154" cy="150" rx="13" ry="9" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.5"/>
+                <path d="M64 114 C52 104 34 106 28 118 C24 127 30 137 42 138 C52 139 60 134 66 128 Z" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.6" stroke-linejoin="round"/>
+                <circle cx="40" cy="119" r="2.3" fill="#5C4938"/>
+                <path d="M31 124 H35" stroke="#5C4938" stroke-width="1.8" stroke-linecap="round"/>
+                <ellipse cx="43" cy="126" rx="3.4" ry="1.9" fill="#F9C5BD"/>
+                <path d="M62 134 C62 72 174 72 174 134 Z" fill="#A8D8B9" stroke="#5C4938" stroke-width="3" stroke-linejoin="round"/>
+                <polygon points="118,88 138,100 138,120 118,130 98,120 98,100" fill="#EAF6EE" stroke="#5C4938" stroke-width="2.2"/>
+                <path d="M118 75 V88 M98 100 L74 96 M138 100 L162 96 M98 120 L74 128 M138 120 L162 128" stroke="#5C4938" stroke-width="2.2" stroke-linecap="round"/>
+                <rect x="58" y="130" width="120" height="13" rx="6.5" fill="#F3D39A" stroke="#5C4938" stroke-width="2.6"/>
+            </svg>
         `;
-        btnWrap.parentElement.insertBefore(
-            document.createRange().createContextualFragment(stagesHtml),
-            btnWrap
-        );
 
-        ['crystal', 'tarot', 'tortoise'].forEach(mode => {
-            const st = document.getElementById(`div-stage-${mode}`);
-            if (st) {
-                st.addEventListener('click', () => {
-                    if (typeof startPickProcess === 'function') startPickProcess();
+        const TURTLE_SHOP_SVG = `
+            <svg viewBox="0 0 48 48" class="w-12 h-12">
+                <path d="M38 30 L45 27 L39 34 Z" fill="#FCE8A6" stroke="#5C4938" stroke-width="1.6" stroke-linejoin="round"/>
+                <ellipse cx="18" cy="35" rx="5" ry="3.5" fill="#FCE8A6" stroke="#5C4938" stroke-width="1.8"/>
+                <ellipse cx="32" cy="35" rx="5" ry="3.5" fill="#FCE8A6" stroke="#5C4938" stroke-width="1.8"/>
+                <path d="M15 24 C11 20 5 21 3 26 C2 30 6 33 11 33 L16 30 Z" fill="#FCE8A6" stroke="#5C4938" stroke-width="1.8" stroke-linejoin="round"/>
+                <circle cx="8" cy="26" r="1.3" fill="#5C4938"/>
+                <path d="M14 31 C14 15 38 15 38 31 Z" fill="#A8D8B9" stroke="#5C4938" stroke-width="2"/>
+                <polygon points="26,20 31,23 31,28 26,30 21,28 21,23" fill="#EAF6EE" stroke="#5C4938" stroke-width="1.4"/>
+                <rect x="13" y="30" width="26" height="4" rx="2" fill="#F3D39A" stroke="#5C4938" stroke-width="1.6"/>
+                <circle cx="22" cy="10" r="4.5" fill="#FCE8A6" stroke="#5C4938" stroke-width="1.5"/>
+                <circle cx="33" cy="12" r="4.5" fill="#F7A072" stroke="#5C4938" stroke-width="1.5"/>
+            </svg>
+        `;
+
+        const DIVINATION_ITEMS = Object.freeze([
+            {
+                id: 'wheel',
+                name: '蝦米幸運盲盒轉盤',
+                cost: 0,
+                btnText: '轉動呷蝦米幸運盲盒',
+                desc: '經典 6 格美食盲盒轉盤，由炸蝦尾指針為你指明方向！',
+                svg: '<svg viewBox="0 0 48 48" class="w-12 h-12"><circle cx="24" cy="24" r="18" fill="#F9C5BD" stroke="#5C4938" stroke-width="2.2"/><path d="M24 6V42M6 24H42M11 11L37 37M37 11L11 37" stroke="#5C4938" stroke-width="1.6"/><circle cx="24" cy="24" r="6" fill="#FCE8A6" stroke="#5C4938" stroke-width="2"/></svg>'
+            },
+            {
+                id: 'crystal',
+                name: '米米星空水晶球',
+                cost: 140,
+                btnText: '凝視星空水晶球占卜',
+                desc: '小巫師米米守護的粉紫水晶球，感應宇宙星象為你預言今日必吃好店！',
+                svg: '<svg viewBox="0 0 48 48" class="w-12 h-12"><path d="M13 38H35L38 43H10Z" fill="#F3D39A" stroke="#5C4938" stroke-width="2" stroke-linejoin="round"/><circle cx="24" cy="22" r="15" fill="#D9C8EC" stroke="#5C4938" stroke-width="2.2"/><path d="M16 16Q20 11 25 11" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/><circle cx="24" cy="23" r="5" fill="#FFFFFF" stroke="#5C4938" stroke-width="1.6"/></svg>'
+            },
+            {
+                id: 'tarot',
+                name: '阿蝦命運塔羅牌',
+                cost: 180,
+                btnText: '抽取今日美食塔羅牌',
+                desc: '充滿儀式感的金邊手繪塔羅牌組，洗牌後翻出專屬於你的命定餐廳！',
+                svg: '<svg viewBox="0 0 48 48" class="w-12 h-12"><rect x="10" y="9" width="18" height="28" rx="4" transform="rotate(-10 10 9)" fill="#BBE2F2" stroke="#5C4938" stroke-width="2"/><rect x="19" y="7" width="20" height="30" rx="4" transform="rotate(6 19 7)" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.2"/><circle cx="28" cy="22" r="5" fill="#F7A072" stroke="#5C4938" stroke-width="1.6"/></svg>'
+            },
+            {
+                id: 'tortoise',
+                name: '神算小龜殼卜卦',
+                cost: 220,
+                btnText: '搖動小龜殼擲卦象',
+                desc: '探頭小龜殼搭配龜甲格紋與占卜銅錢，搖出今日飽足感滿分的上上籤！',
+                svg: TURTLE_SHOP_SVG
+            }
+        ]);
+
+        const STORAGE_KEY = 'shiami_divination_tools_v1';
+
+        class DivinationBridge {
+            constructor() {
+                this.state = this.loadState();
+                this.injectStyles();
+                this.mountStages();
+                this.mountShop();
+                this.bindSpinEffects();
+                this.applyMode();
+            }
+
+            loadState() {
+                try {
+                    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+                    if (raw && Array.isArray(raw.owned) && raw.owned.length) {
+                        return {
+                            owned: Array.from(new Set(['wheel', ...raw.owned])),
+                            active: raw.active || 'wheel'
+                        };
+                    }
+                } catch (_) { /* ignore */ }
+                return { owned: ['wheel'], active: 'wheel' };
+            }
+
+            saveState() {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+                } catch (_) { /* ignore */ }
+            }
+
+            getApp() {
+                return window.shiamiApp || null;
+            }
+
+            notify(msg) {
+                this.getApp()?.notifier?.show(msg);
+            }
+
+            injectStyles() {
+                if (document.getElementById('divination-addon-style')) return;
+                const style = document.createElement('style');
+                style.id = 'divination-addon-style';
+                style.textContent = `
+                    @keyframes divCrystalPulse {
+                        0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px rgba(217, 200, 236, 0.85)); }
+                        50% { transform: scale(1.06); filter: drop-shadow(0 0 18px rgba(247, 160, 114, 0.95)); }
+                    }
+                    .div-crystal-anim { animation: divCrystalPulse 0.65s ease-in-out infinite; }
+                    @keyframes divTarotShuffle {
+                        0%, 100% { transform: translateX(0) rotate(0deg); }
+                        25% { transform: translateX(-14px) rotate(-8deg); }
+                        50% { transform: translateX(14px) rotate(8deg); }
+                        75% { transform: translateX(-8px) rotate(-4deg); }
+                    }
+                    .div-tarot-anim { animation: divTarotShuffle 0.55s ease-in-out infinite; }
+                    @keyframes divTortoiseShake {
+                        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+                        20% { transform: translate(-6px, -8px) rotate(-12deg); }
+                        40% { transform: translate(6px, -10px) rotate(12deg); }
+                        60% { transform: translate(-5px, -6px) rotate(-8deg); }
+                        80% { transform: translate(5px, -8px) rotate(8deg); }
+                    }
+                    .div-tortoise-anim { animation: divTortoiseShake 0.45s ease-in-out infinite; }
+                `;
+                document.head.appendChild(style);
+            }
+
+            mountStages() {
+                const drawBtn = document.getElementById('btn-draw');
+                if (!drawBtn || document.getElementById('div-extra-stages-wrap')) return;
+                const btnWrap = drawBtn.parentElement;
+                if (!btnWrap?.parentElement) return;
+
+                const html = `
+                    <div id="div-extra-stages-wrap" class="w-full flex flex-col items-center">
+                        <div id="div-stage-crystal" class="hidden relative w-72 h-72 sm:w-80 sm:h-80 my-2 flex-col items-center justify-center cursor-pointer" title="點我占卜">
+                            <div id="div-crystal-orb" class="w-56 h-56 flex items-center justify-center squishy-idle">
+                                <svg viewBox="0 0 220 220" class="w-full h-full overflow-visible">
+                                    <ellipse cx="110" cy="202" rx="68" ry="10" fill="#E5DDD0"/>
+                                    <path d="M58 178 C64 164 156 164 162 178 L170 194 C150 202 70 202 50 194 Z" fill="#F3D39A" stroke="#5C4938" stroke-width="3" stroke-linejoin="round"/>
+                                    <path d="M68 184 H152" stroke="#5C4938" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="6 6"/>
+                                    <circle cx="110" cy="106" r="74" fill="#D9C8EC" stroke="#5C4938" stroke-width="3.2"/>
+                                    <circle cx="110" cy="106" r="64" fill="#BBE2F2" opacity="0.65"/>
+                                    <path d="M66 76 Q82 54 106 54" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
+                                    <circle cx="62" cy="88" r="3" fill="#FFFFFF"/>
+                                    <path d="M146 72 L149 79 L156 82 L149 85 L146 92 L143 85 L136 82 L143 79 Z" fill="#FCE8A6" stroke="#5C4938" stroke-width="1.5"/>
+                                    <g transform="translate(74, 74)">
+                                        <path d="M22 14 L36 -6 L50 14 Z" fill="#5C4938" stroke="#5C4938" stroke-width="2" stroke-linejoin="round"/>
+                                        <ellipse cx="36" cy="14" rx="20" ry="4.5" fill="#F7A072" stroke="#5C4938" stroke-width="2"/>
+                                        <path d="M36 16 C52 16 62 38 60 56 C58 66 48 68 36 68 C24 68 14 66 12 56 C10 38 20 16 36 16 Z" fill="#FFFFFF" stroke="#5C4938" stroke-width="2.4"/>
+                                        <rect x="26" y="52" width="20" height="15" rx="2.5" fill="#5C4938"/>
+                                        <circle cx="26" cy="40" r="2.3" fill="#5C4938"/><circle cx="46" cy="40" r="2.3" fill="#5C4938"/>
+                                        <path d="M33 42 Q36 45 39 42" stroke="#5C4938" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                                        <ellipse cx="21" cy="43" rx="3.8" ry="2" fill="#F9C5BD"/><ellipse cx="51" cy="43" rx="3.8" ry="2" fill="#F9C5BD"/>
+                                    </g>
+                                </svg>
+                            </div>
+                            <span class="mt-1 px-3.5 py-1 rounded-full bg-[#D9C8EC] border-2 border-[#5C4938] text-xs font-black text-[#5C4938]">✨ 米米星空水晶球（點我占卜）</span>
+                        </div>
+
+                        <div id="div-stage-tarot" class="hidden relative w-72 h-72 sm:w-80 sm:h-80 my-2 flex-col items-center justify-center cursor-pointer" title="點我翻牌">
+                            <div id="div-tarot-deck" class="flex items-center justify-center gap-2.5 py-2">
+                                <div class="w-20 h-32 rounded-2xl bg-[#BBE2F2] border-[2.5px] border-[#5C4938] shadow-[0_4px_0_#5C4938] p-1.5 -rotate-6">
+                                    <div class="w-full h-full rounded-xl border-2 border-dashed border-[#5C4938] bg-[#FFFDF9] flex flex-col items-center justify-center">
+                                        <span class="text-[10px] font-black">I. 飯糰月</span>
+                                        <span class="text-lg my-1">🍙</span>
+                                        <span class="text-[9px] font-bold text-[#857262]">暖胃安神</span>
+                                    </div>
+                                </div>
+                                <div class="w-24 h-36 rounded-2xl bg-[#FCE8A6] border-[2.8px] border-[#5C4938] shadow-[0_5px_0_#5C4938] p-1.5 z-10 -translate-y-2">
+                                    <div class="w-full h-full rounded-xl border-2 border-dashed border-[#5C4938] bg-[#FFFDF9] flex flex-col items-center justify-center">
+                                        <span class="text-[10px] font-black text-[#E87A64]">★ 命運炸蝦 ★</span>
+                                        <span class="text-2xl my-1">🍤</span>
+                                        <span class="text-[10px] font-black">點擊翻牌</span>
+                                    </div>
+                                </div>
+                                <div class="w-20 h-32 rounded-2xl bg-[#F9C5BD] border-[2.5px] border-[#5C4938] shadow-[0_4px_0_#5C4938] p-1.5 rotate-6">
+                                    <div class="w-full h-full rounded-xl border-2 border-dashed border-[#5C4938] bg-[#FFFDF9] flex flex-col items-center justify-center">
+                                        <span class="text-[10px] font-black">II. 珍珠星</span>
+                                        <span class="text-lg my-1">🧋</span>
+                                        <span class="text-[9px] font-bold text-[#857262]">甜蜜驚喜</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="mt-2 px-3.5 py-1 rounded-full bg-[#FCE8A6] border-2 border-[#5C4938] text-xs font-black text-[#5C4938]">🃏 阿蝦命運塔羅牌（點我翻牌）</span>
+                        </div>
+
+                        <div id="div-stage-tortoise" class="hidden relative w-72 h-72 sm:w-80 sm:h-80 my-2 flex-col items-center justify-center cursor-pointer" title="點我卜卦">
+                            <div id="div-tortoise-shell" class="w-56 h-52 flex items-center justify-center squishy-idle">
+                                ${TURTLE_STAGE_SVG}
+                            </div>
+                            <span class="mt-1 px-3.5 py-1 rounded-full bg-[#A8D8B9] border-2 border-[#5C4938] text-xs font-black text-[#5C4938]">🐢 神算小龜殼卜卦（點我擲卦）</span>
+                        </div>
+
+                        <div id="div-quick-bar" class="flex flex-wrap items-center justify-center gap-1.5 mt-1"></div>
+                    </div>
+                `;
+                btnWrap.parentElement.insertBefore(document.createRange().createContextualFragment(html), btnWrap);
+
+                ['crystal', 'tarot', 'tortoise'].forEach((mode) => {
+                    document.getElementById(`div-stage-${mode}`)?.addEventListener('click', () => {
+                        this.getApp()?.wheelCtrl?.startSpin();
+                    });
                 });
             }
-        });
-    }
 
-    function mountDivinationShop() {
-        const decorsGrid = document.getElementById('shop-decors-grid');
-        if (!decorsGrid || document.getElementById('div-shop-section')) return;
-        const parentSec = decorsGrid.closest('section');
-        if (!parentSec || !parentSec.parentElement) return;
+            mountShop() {
+                const decorsGrid = document.getElementById('shop-decors-grid');
+                if (!decorsGrid || document.getElementById('div-shop-section')) return;
+                const parentSec = decorsGrid.closest('section');
+                if (!parentSec?.parentElement) return;
 
-        const secHtml = `
-            <section id="div-shop-section" class="sumikko-card p-5 sm:p-6 bg-white">
-                <h3 class="text-base sm:text-lg font-black text-[#5C4938] mb-3 flex items-center gap-2">
-                    <span>🔮 神秘美食占卜抽籤器（購買後可把轉盤換成水晶球、塔羅牌或卜卦龜殼！）</span>
-                </h3>
-                <div id="div-shop-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
-            </section>
-        `;
-        parentSec.parentElement.insertBefore(
-            document.createRange().createContextualFragment(secHtml),
-            parentSec.nextSibling
-        );
-        renderDivinationShopCards();
-    }
-
-    function renderDivinationShopCards() {
-        const grid = document.getElementById('div-shop-grid');
-        if (!grid) return;
-
-        grid.innerHTML = DIVINATION_ITEMS.map(item => {
-            const owned = divState.owned.includes(item.id);
-            const active = divState.active === item.id;
-            return `
-                <div class="sumikko-card-sm ${active ? 'bg-[#FFFDF7]' : 'bg-white'} p-4 flex flex-col justify-between gap-3 text-center">
-                    <div class="flex flex-col items-center">
-                        <div class="w-16 h-16 rounded-2xl bg-[#FAF6F0] border-2 border-[#5C4938] flex items-center justify-center mb-2">
-                            ${item.svg}
-                        </div>
-                        <h4 class="font-hand text-base font-black text-[#5C4938]">${item.name}</h4>
-                        <p class="text-xs font-bold text-[#857262] mt-1">${item.desc}</p>
-                    </div>
-                    <button type="button" data-div-buy="${item.id}"
-                        class="capsule-btn w-full text-xs py-1.5 ${active ? 'bg-[#A8D8B9]' : (owned ? 'bg-white' : 'bg-[#FCE8A6]')}">
-                        <span>${active ? '目前使用中' : (owned ? '套用此道具' : `購買 (${item.cost} 幣)`)}</span>
-                    </button>
-                </div>
-            `;
-        }).join('');
-
-        grid.querySelectorAll('[data-div-buy]').forEach(btn => {
-            btn.addEventListener('click', () => handleBuyOrEquip(btn.getAttribute('data-div-buy')));
-        });
-    }
-
-    function handleBuyOrEquip(id) {
-        const item = DIVINATION_ITEMS.find(d => d.id === id);
-        if (!item) return;
-
-        if (!divState.owned.includes(id)) {
-            const coins = (typeof economyState !== 'undefined' && typeof economyState.coins === 'number')
-                ? economyState.coins : 0;
-            if (coins < item.cost) {
-                if (typeof showSumikkoToast === 'function') {
-                    showSumikkoToast(`蝦米幣不夠喔！還差 ${item.cost - coins} 枚～`);
-                }
-                return;
-            }
-            economyState.coins -= item.cost;
-            if (typeof saveEconomyToStorage === 'function') saveEconomyToStorage();
-            divState.owned.push(id);
-            if (typeof firePastelConfetti === 'function') firePastelConfetti();
-            if (typeof showSumikkoToast === 'function') {
-                showSumikkoToast(`解鎖成功！「${item.name}」已套用！`);
-            }
-        } else if (typeof showSumikkoToast === 'function') {
-            showSumikkoToast(`已切換抽籤器為「${item.name}」！`);
-        }
-
-        divState.active = id;
-        persistDivState();
-        applyDivinationMode();
-        renderDivinationShopCards();
-    }
-
-    function applyDivinationMode() {
-        const active = divState.active || 'wheel';
-        const wheelInner = document.getElementById('roulette-wheel');
-        const wheelStage = wheelInner ? wheelInner.closest('.relative.w-72') : null;
-        if (wheelStage) {
-            wheelStage.style.display = (active === 'wheel') ? '' : 'none';
-        }
-
-        ['crystal', 'tarot', 'tortoise'].forEach(mode => {
-            const el = document.getElementById(`div-stage-${mode}`);
-            if (!el) return;
-            if (mode === active) {
-                el.classList.remove('hidden');
-                el.classList.add('flex');
-            } else {
-                el.classList.add('hidden');
-                el.classList.remove('flex');
-            }
-        });
-
-        const curItem = DIVINATION_ITEMS.find(d => d.id === active) || DIVINATION_ITEMS[0];
-        const drawText = document.getElementById('btn-draw-text');
-        if (drawText) drawText.textContent = curItem.btnText;
-
-        const quickBar = document.getElementById('div-quick-bar');
-        if (quickBar) {
-            const icons = { wheel: '🎡', crystal: '🔮', tarot: '🃏', tortoise: '🐢' };
-            quickBar.innerHTML = DIVINATION_ITEMS.filter(d => divState.owned.includes(d.id)).map(d => {
-                const isCur = d.id === active;
-                return `
-                    <button type="button" data-div-quick="${d.id}"
-                        class="px-2.5 py-1 rounded-full border-2 border-[#5C4938] text-[11px] font-black transition ${isCur ? 'bg-[#FCE8A6] shadow-[0_2px_0_#5C4938]' : 'bg-white text-[#857262]'}">
-                        <span>${icons[d.id]} ${d.name.replace('蝦米', '').replace('神算', '')}</span>
-                    </button>
+                const secHtml = `
+                    <section id="div-shop-section" class="sumikko-card p-5 sm:p-6 bg-white">
+                        <h3 class="text-base sm:text-lg font-black text-[#5C4938] mb-3 flex items-center gap-2">
+                            <span>🔮 神秘美食占卜抽籤器（購買後可把轉盤換成水晶球、塔羅牌或卜卦龜殼！）</span>
+                        </h3>
+                        <div id="div-shop-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+                    </section>
                 `;
-            }).join('');
-
-            quickBar.querySelectorAll('[data-div-quick]').forEach(btn => {
-                btn.addEventListener('click', () => handleBuyOrEquip(btn.getAttribute('data-div-quick')));
-            });
-        }
-    }
-
-    const drawBtn = document.getElementById('btn-draw');
-    if (drawBtn) {
-        drawBtn.addEventListener('click', () => {
-            if (divState.active === 'crystal') {
-                const orb = document.getElementById('div-crystal-orb');
-                orb?.classList.add('div-crystal-anim');
-                setTimeout(() => orb?.classList.remove('div-crystal-anim'), 2200);
-            } else if (divState.active === 'tarot') {
-                const deck = document.getElementById('div-tarot-deck');
-                deck?.classList.add('div-tarot-anim');
-                setTimeout(() => deck?.classList.remove('div-tarot-anim'), 2200);
-            } else if (divState.active === 'tortoise') {
-                const shell = document.getElementById('div-tortoise-shell');
-                shell?.classList.add('div-tortoise-anim');
-                setTimeout(() => shell?.classList.remove('div-tortoise-anim'), 2200);
+                parentSec.parentElement.insertBefore(document.createRange().createContextualFragment(secHtml), parentSec.nextSibling);
+                this.renderShopCards();
             }
+
+            renderShopCards() {
+                const grid = document.getElementById('div-shop-grid');
+                if (!grid) return;
+
+                grid.innerHTML = DIVINATION_ITEMS.map((item) => {
+                    const owned = this.state.owned.includes(item.id);
+                    const active = this.state.active === item.id;
+                    return `
+                        <div class="sumikko-card-sm ${active ? 'bg-[#FFFDF7]' : 'bg-white'} p-4 flex flex-col justify-between gap-3 text-center">
+                            <div class="flex flex-col items-center">
+                                <div class="w-16 h-16 rounded-2xl bg-[#FAF6F0] border-2 border-[#5C4938] flex items-center justify-center mb-2">${item.svg}</div>
+                                <h4 class="font-hand text-base font-black text-[#5C4938]">${item.name}</h4>
+                                <p class="text-xs font-bold text-[#857262] mt-1">${item.desc}</p>
+                            </div>
+                            <button type="button" data-div-buy="${item.id}"
+                                class="capsule-btn w-full text-xs py-1.5 ${active ? 'bg-[#A8D8B9]' : (owned ? 'bg-white' : 'bg-[#FCE8A6]')}">
+                                <span>${active ? '目前使用中' : (owned ? '套用此道具' : `購買 (${item.cost} 幣)`)}</span>
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+
+                grid.querySelectorAll('[data-div-buy]').forEach((btn) => {
+                    btn.addEventListener('click', () => this.buyOrEquip(btn.dataset.divBuy));
+                });
+            }
+
+            buyOrEquip(id) {
+                const item = DIVINATION_ITEMS.find((d) => d.id === id);
+                const app = this.getApp();
+                if (!item || !app) return;
+
+                if (!this.state.owned.includes(id)) {
+                    if (!app.userState.spendCoins(item.cost)) {
+                        this.notify(`蝦米幣不夠喔！還差 ${item.cost - app.userState.economy.coins} 枚～`);
+                        return;
+                    }
+                    this.state.owned.push(id);
+                    app.notifier.fireConfetti();
+                    this.notify(`解鎖成功！「${item.name}」已套用！`);
+                } else {
+                    this.notify(`已切換抽籤器為「${item.name}」！`);
+                }
+
+                this.state.active = id;
+                this.saveState();
+                this.applyMode();
+                this.renderShopCards();
+                app.syncAllUI();
+            }
+
+            applyMode() {
+                const active = this.state.active || 'wheel';
+                const wheelInner = document.getElementById('roulette-wheel');
+                const wheelStage = wheelInner ? wheelInner.closest('.relative') : null;
+                if (wheelStage) {
+                    wheelStage.style.display = active === 'wheel' ? '' : 'none';
+                }
+
+                ['crystal', 'tarot', 'tortoise'].forEach((mode) => {
+                    const el = document.getElementById(`div-stage-${mode}`);
+                    if (!el) return;
+                    el.classList.toggle('hidden', mode !== active);
+                    el.classList.toggle('flex', mode === active);
+                });
+
+                const cur = DIVINATION_ITEMS.find((d) => d.id === active) || DIVINATION_ITEMS[0];
+                const drawText = document.getElementById('btn-draw-text');
+                if (drawText) drawText.textContent = cur.btnText;
+
+                const quickBar = document.getElementById('div-quick-bar');
+                if (quickBar) {
+                    const icons = { wheel: '🎡', crystal: '🔮', tarot: '🃏', tortoise: '🐢' };
+                    quickBar.innerHTML = DIVINATION_ITEMS.filter((d) => this.state.owned.includes(d.id)).map((d) => {
+                        const isCur = d.id === active;
+                        return `
+                            <button type="button" data-div-quick="${d.id}"
+                                class="px-2.5 py-1 rounded-full border-2 border-[#5C4938] text-[11px] font-black transition ${isCur ? 'bg-[#FCE8A6] shadow-[0_2px_0_#5C4938]' : 'bg-white text-[#857262]'}">
+                                <span>${icons[d.id]} ${d.name.replace('蝦米', '').replace('神算', '')}</span>
+                            </button>
+                        `;
+                    }).join('');
+
+                    quickBar.querySelectorAll('[data-div-quick]').forEach((btn) => {
+                        btn.addEventListener('click', () => this.buyOrEquip(btn.dataset.divQuick));
+                    });
+                }
+            }
+
+            bindSpinEffects() {
+                const animMap = {
+                    crystal: { id: 'div-crystal-orb', cls: 'div-crystal-anim' },
+                    tarot: { id: 'div-tarot-deck', cls: 'div-tarot-anim' },
+                    tortoise: { id: 'div-tortoise-shell', cls: 'div-tortoise-anim' }
+                };
+                document.getElementById('btn-draw')?.addEventListener('click', () => {
+                    const cfg = animMap[this.state.active];
+                    if (!cfg) return;
+                    const target = document.getElementById(cfg.id);
+                    target?.classList.add(cfg.cls);
+                    setTimeout(() => target?.classList.remove(cfg.cls), 2200);
+                });
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            window.shiamiDivination = new DivinationBridge();
         });
-    }
-
-    function bootAll() {
-        mountDivinationStages();
-        mountDivinationShop();
-        applyDivinationMode();
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', bootAll);
-    } else {
-        bootAll();
-    }
-    setTimeout(bootAll, 600);
-})();
-</script>
+    })();
+    </script>
+    
 </body>
 </html>
