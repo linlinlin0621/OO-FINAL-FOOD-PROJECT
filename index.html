@@ -547,10 +547,59 @@
                             </g>
                         </svg>
                     </div>
-                    <h1 class="font-hand text-2xl font-black tracking-wide text-[#5C4938] whitespace-nowrap leading-none pl-1">
-                        呷蝦米
-                    </h1>
+                    <div class="flex items-center gap-1.5 min-w-0">
+                    <div id="header-mascot-stage" data-action="cycle-mood" title="點我換阿蝦與米米的表情！"
+                         class="relative w-32 h-22 flex-shrink-0 cursor-pointer group select-none">
+                        <svg id="header-mascot-svg" viewBox="0 0 185 120" class="w-full h-full overflow-visible squishy-idle">
+                            <ellipse cx="92" cy="106" rx="76" ry="9" fill="#E5DDD0"/>
+                            <g transform="translate(8, 68)">
+                                <path d="M12 8C15 5 21 5 24 8C28 8 31 12 29 17C31 21 28 26 24 27C21 30 14 30 11 27C7 26 5 21 7 17C5 12 8 8 12 8Z" fill="#FCE8A6" stroke="#5C4938" stroke-width="1.8"/>
+                                <circle cx="14" cy="18" r="1.4" fill="#5C4938"/><circle cx="22" cy="18" r="1.4" fill="#5C4938"/>
+                                <ellipse cx="12" cy="20" rx="2" ry="1.2" fill="#F9C5BD"/><ellipse cx="24" cy="20" rx="2" ry="1.2" fill="#F9C5BD"/>
+                            </g>
+                            <g transform="translate(28, 22)">
+                                <path d="M22 16 C14 4 24 -2 31 8 C34 -3 44 -3 43 9 C52 2 58 10 48 18 Z" fill="#E87A64" stroke="#5C4938" stroke-width="2.2" stroke-linejoin="round"/>
+                                <path d="M31 9 L34 16 M41 9 L39 16" stroke="#5C4938" stroke-width="1.6" stroke-linecap="round"/>
+                                <path d="M18 22 C11 26 9 36 12 45 C8 54 11 66 19 72 C27 78 47 78 55 72 C63 66 65 54 61 45 C64 36 61 26 54 22 C46 16 26 16 18 22 Z" fill="#F3D39A" stroke="#5C4938" stroke-width="2.2" stroke-linejoin="round"/>
+                                <ellipse cx="21" cy="49" rx="4.5" ry="2.6" fill="#F59B90" opacity="0.75"/><ellipse cx="52" cy="49" rx="4.5" ry="2.6" fill="#F59B90" opacity="0.75"/>
+                                <g id="shrimp-face">
+                                    <circle cx="26" cy="45" r="2.2" fill="#5C4938"/><circle cx="47" cy="45" r="2.2" fill="#5C4938"/>
+                                    <path d="M33.5 46 Q35 48.2 36.5 46 Q38 48.2 39.5 46" stroke="#5C4938" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                                </g>
+                            </g>
+                            <g transform="translate(94, 28)">
+                                <path d="M36 8 C54 8 68 36 65 56 C63 68 52 72 36 72 C20 72 9 68 7 56 C4 36 18 8 36 8 Z" fill="#FFFFFF" stroke="#5C4938" stroke-width="2.2" stroke-linejoin="round"/>
+                                <circle cx="36" cy="15" r="4.5" fill="#E87A64" stroke="#5C4938" stroke-width="1.8"/>
+                                <rect x="25" y="54" width="22" height="17" rx="3" fill="#5C4938"/>
+                                <ellipse cx="20" cy="43" rx="4.5" ry="2.6" fill="#F9C5BD"/><ellipse cx="52" cy="43" rx="4.5" ry="2.6" fill="#F9C5BD"/>
+                                <g id="rice-face">
+                                    <circle cx="25" cy="39" r="2.2" fill="#5C4938"/><circle cx="47" cy="39" r="2.2" fill="#5C4938"/>
+                                    <path d="M34 40.5 H38" stroke="#5C4938" stroke-width="1.8" stroke-linecap="round"/>
+                                    <path d="M56 29 C54.5 32 54.5 34 56 34.5 C57.5 34 57.5 32 56 29 Z" fill="#BBE2F2" stroke="#5C4938" stroke-width="1.4"/>
+                                </g>
+                            </g>
+                        </svg>
+                    </div>
+                    <div class="flex flex-col justify-center min-w-0">
+                        <h1 class="font-hand text-2xl font-black tracking-wide text-[#5C4938] whitespace-nowrap leading-tight">
+                            呷蝦米
+                        </h1>
+                        <span class="mt-0.5 w-fit text-[10px] font-bold bg-[#F7A072] text-white px-2 py-0.5 rounded-full border-2 border-[#5C4938] shadow-[0_1.5px_0_#5C4938] whitespace-nowrap">
+                            雲科美食手帳
+                        </span>
+                    </div>
+                        <div class="flex items-center gap-1 flex-shrink-0">
+                    <button type="button" data-action="open-checkin"
+                        class="relative capsule-btn bg-[#F9C5BD] text-[11px] py-1 px-2">
+                        <span id="m-header-checkin-text">每日簽到</span>
+                        <span id="m-checkin-red-dot" class="hidden absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#E87A64] border-2 border-[#5C4938]"></span>
+                    </button>
+                    <button type="button" id="btn-toggle-mobile-header-detail"
+                        class="capsule-btn bg-[#FFF9E6] text-[11px] py-1 px-2">
+                        <span>詳細 ▾</span>
+                    </button>
                 </div>
+            </div>
 
                 <div class="flex items-center gap-1.5 flex-shrink-0">
                     <button type="button" data-action="open-checkin"
