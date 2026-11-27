@@ -509,42 +509,45 @@
         <!-- 頂部招牌 Header -->
         <header class="sumikko-card corner-wall-bg p-3.5 sm:p-6 mb-4 sm:mb-6 overflow-hidden">
             <div class="absolute top-0 left-28 bottom-0 border-l-2 border-dashed border-[#DFD5C6] pointer-events-none hidden sm:block"></div>
-
-            <!-- 手機版：呷蝦米 + 角色 + 今日簽到 + 詳細資訊 排在同一行 -->
-            <div class="flex sm:hidden items-center justify-between gap-1.5 w-full flex-nowrap relative z-10">
-                <div class="flex items-center gap-1.5 min-w-0">
-                    <div id="m-header-mascot-stage" data-action="cycle-mood" title="點我換阿蝦與米米的表情！"
-                         class="relative w-24 h-16 flex-shrink-0 cursor-pointer select-none">
-                        <svg viewBox="0 0 185 120" class="w-full h-full overflow-visible squishy-idle">
+            <!-- 手機版：角色 + 呷蝦米 + 今日簽到 + 詳細資訊 排在同一行 -->
+            <div class="flex sm:hidden items-center justify-between gap-2 w-full flex-nowrap relative z-10">
+                <div class="flex items-center gap-2 min-w-0">
+                    <div id="header-mascot-stage" data-action="cycle-mood" title="點我換阿蝦與米米的表情！"
+                         class="relative w-28 h-20 flex-shrink-0 cursor-pointer group select-none">
+                        <svg id="header-mascot-svg" viewBox="0 0 185 120" class="w-full h-full overflow-visible squishy-idle">
                             <ellipse cx="92" cy="106" rx="76" ry="9" fill="#E5DDD0"/>
+                            <!-- 左側小麵衣小夥伴 -->
                             <g transform="translate(8, 68)">
                                 <path d="M12 8C15 5 21 5 24 8C28 8 31 12 29 17C31 21 28 26 24 27C21 30 14 30 11 27C7 26 5 21 7 17C5 12 8 8 12 8Z" fill="#FCE8A6" stroke="#5C4938" stroke-width="1.8"/>
                                 <circle cx="14" cy="18" r="1.4" fill="#5C4938"/><circle cx="22" cy="18" r="1.4" fill="#5C4938"/>
                                 <ellipse cx="12" cy="20" rx="2" ry="1.2" fill="#F9C5BD"/><ellipse cx="24" cy="20" rx="2" ry="1.2" fill="#F9C5BD"/>
                             </g>
+                            <!-- 中間阿蝦（炸蝦尾） -->
                             <g transform="translate(28, 22)">
                                 <path d="M22 16 C14 4 24 -2 31 8 C34 -3 44 -3 43 9 C52 2 58 10 48 18 Z" fill="#E87A64" stroke="#5C4938" stroke-width="2.2" stroke-linejoin="round"/>
                                 <path d="M31 9 L34 16 M41 9 L39 16" stroke="#5C4938" stroke-width="1.6" stroke-linecap="round"/>
                                 <path d="M18 22 C11 26 9 36 12 45 C8 54 11 66 19 72 C27 78 47 78 55 72 C63 66 65 54 61 45 C64 36 61 26 54 22 C46 16 26 16 18 22 Z" fill="#F3D39A" stroke="#5C4938" stroke-width="2.2" stroke-linejoin="round"/>
                                 <ellipse cx="21" cy="49" rx="4.5" ry="2.6" fill="#F59B90" opacity="0.75"/><ellipse cx="52" cy="49" rx="4.5" ry="2.6" fill="#F59B90" opacity="0.75"/>
-                                <g id="m-shrimp-face">
+                                <g id="shrimp-face">
                                     <circle cx="26" cy="45" r="2.2" fill="#5C4938"/><circle cx="47" cy="45" r="2.2" fill="#5C4938"/>
                                     <path d="M33.5 46 Q35 48.2 36.5 46 Q38 48.2 39.5 46" stroke="#5C4938" stroke-width="1.8" fill="none" stroke-linecap="round"/>
                                 </g>
                             </g>
+                            <!-- 右側米米（小飯糰） -->
                             <g transform="translate(94, 28)">
                                 <path d="M36 8 C54 8 68 36 65 56 C63 68 52 72 36 72 C20 72 9 68 7 56 C4 36 18 8 36 8 Z" fill="#FFFFFF" stroke="#5C4938" stroke-width="2.2" stroke-linejoin="round"/>
                                 <circle cx="36" cy="15" r="4.5" fill="#E87A64" stroke="#5C4938" stroke-width="1.8"/>
                                 <rect x="25" y="54" width="22" height="17" rx="3" fill="#5C4938"/>
                                 <ellipse cx="20" cy="43" rx="4.5" ry="2.6" fill="#F9C5BD"/><ellipse cx="52" cy="43" rx="4.5" ry="2.6" fill="#F9C5BD"/>
-                                <g id="m-rice-face">
+                                <g id="rice-face">
                                     <circle cx="25" cy="39" r="2.2" fill="#5C4938"/><circle cx="47" cy="39" r="2.2" fill="#5C4938"/>
                                     <path d="M34 40.5 H38" stroke="#5C4938" stroke-width="1.8" stroke-linecap="round"/>
+                                    <path d="M56 29 C54.5 32 54.5 34 56 34.5 C57.5 34 57.5 32 56 29 Z" fill="#BBE2F2" stroke="#5C4938" stroke-width="1.4"/>
                                 </g>
                             </g>
                         </svg>
                     </div>
-                    <h1 class="font-hand text-3xl font-black tracking-wide text-[#5C4938] whitespace-nowrap leading-none">
+                    <h1 class="font-hand text-2xl font-black tracking-wide text-[#5C4938] whitespace-nowrap leading-none pl-1">
                         呷蝦米
                     </h1>
                 </div>
@@ -5210,13 +5213,20 @@
                     case 'cycle-mood': {
                         this.moodIdx = (this.moodIdx + 1) % AppConfig.MASCOT_MOODS.length;
                         const mood = AppConfig.MASCOT_MOODS[this.moodIdx];
-                        document.getElementById('mascot-speech').textContent = mood.speech;
-                        document.getElementById('shrimp-face').innerHTML = mood.shrimpFace;
-                        document.getElementById('rice-face').innerHTML = mood.riceFace;
-                        const stage = document.getElementById('header-mascot-stage');
-                        stage.classList.remove('jelly-click');
-                        void stage.offsetWidth;
-                        stage.classList.add('jelly-click');
+                        const speechEl = document.getElementById('mascot-speech');
+                        if (speechEl) speechEl.textContent = mood.speech;
+
+                        document.querySelectorAll('#shrimp-face').forEach((el) => {
+                            el.innerHTML = mood.shrimpFace;
+                        });
+                        document.querySelectorAll('#rice-face').forEach((el) => {
+                            el.innerHTML = mood.riceFace;
+                        });
+                        document.querySelectorAll('#header-mascot-stage').forEach((stage) => {
+                            stage.classList.remove('jelly-click');
+                            void stage.offsetWidth;
+                            stage.classList.add('jelly-click');
+                        });
                         break;
                     }
                     case 'switch-tab': this.switchTab(el.dataset.tab); break;
