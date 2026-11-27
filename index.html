@@ -510,7 +510,7 @@
         <header class="sumikko-card corner-wall-bg p-3.5 sm:p-6 mb-4 sm:mb-6 overflow-hidden">
             <div class="absolute top-0 left-28 bottom-0 border-l-2 border-dashed border-[#DFD5C6] pointer-events-none hidden sm:block"></div>
 
-            <!-- 手機版：角色 + 呷蝦米 + 今日簽到 + 詳細 排在同一行 -->
+            <!-- 手機版：角色 + 呷蝦米 + 雲科美食手帳 + 每日簽到 + 詳細 排在同一行 -->
             <div class="flex sm:hidden items-center justify-between gap-1.5 w-full flex-nowrap relative z-10">
                 <div class="flex items-center gap-1.5 min-w-0">
                     <div id="header-mascot-stage" data-action="cycle-mood" title="點我換阿蝦與米米的表情！"
@@ -526,7 +526,13 @@
                                 <path d="M22 16 C14 4 24 -2 31 8 C34 -3 44 -3 43 9 C52 2 58 10 48 18 Z" fill="#E87A64" stroke="#5C4938" stroke-width="2.2" stroke-linejoin="round"/>
                                 <path d="M31 9 L34 16 M41 9 L39 16" stroke="#5C4938" stroke-width="1.6" stroke-linecap="round"/>
                                 <path d="M18 22 C11 26 9 36 12 45 C8 54 11 66 19 72 C27 78 47 78 55 72 C63 66 65 54 61 45 C64 36 61 26 54 22 C46 16 26 16 18 22 Z" fill="#F3D39A" stroke="#5C4938" stroke-width="2.2" stroke-linejoin="round"/>
-                                <ellipse cx="21" cy="49" rx="4.5" ry="2.6" fill="#F59B90" opacity="0.75"/><ellipse cx="52" cy="49" rx="4.5" ry="2.6" fill="#F59B90" opacity="0.75"/>
+                                <path d="M18 32 Q21 34 23 31 M51 34 Q54 36 56 33 M16 58 Q19 60 21 57" stroke="#D9B472" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                                <path d="M12 48 C6 50 7 57 13 56" fill="#F3D39A" stroke="#5C4938" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M61 48 C67 50 66 57 60 56" fill="#F3D39A" stroke="#5C4938" stroke-width="2" stroke-linecap="round"/>
+                                <ellipse cx="26" cy="76" rx="5" ry="3.2" fill="#F3D39A" stroke="#5C4938" stroke-width="2"/>
+                                <ellipse cx="47" cy="76" rx="5" ry="3.2" fill="#F3D39A" stroke="#5C4938" stroke-width="2"/>
+                                <ellipse cx="21" cy="49" rx="4.5" ry="2.6" fill="#F59B90" opacity="0.75"/>
+                                <ellipse cx="52" cy="49" rx="4.5" ry="2.6" fill="#F59B90" opacity="0.75"/>
                                 <g id="shrimp-face">
                                     <circle cx="26" cy="45" r="2.2" fill="#5C4938"/><circle cx="47" cy="45" r="2.2" fill="#5C4938"/>
                                     <path d="M33.5 46 Q35 48.2 36.5 46 Q38 48.2 39.5 46" stroke="#5C4938" stroke-width="1.8" fill="none" stroke-linecap="round"/>
@@ -534,8 +540,12 @@
                             </g>
                             <g transform="translate(94, 28)">
                                 <path d="M36 8 C54 8 68 36 65 56 C63 68 52 72 36 72 C20 72 9 68 7 56 C4 36 18 8 36 8 Z" fill="#FFFFFF" stroke="#5C4938" stroke-width="2.2" stroke-linejoin="round"/>
+                                <path d="M11 60 C20 68 52 68 61 60 C59 68 49 71 36 71 C23 71 13 68 11 60 Z" fill="#EFECE6"/>
                                 <circle cx="36" cy="15" r="4.5" fill="#E87A64" stroke="#5C4938" stroke-width="1.8"/>
                                 <rect x="25" y="54" width="22" height="17" rx="3" fill="#5C4938"/>
+                                <circle cx="31" cy="60" r="1" fill="#FAF6F0"/><circle cx="41" cy="64" r="1" fill="#FAF6F0"/>
+                                <path d="M16 48 C21 49 22 54 17 55" fill="#FFFFFF" stroke="#5C4938" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M56 48 C51 49 50 54 55 55" fill="#FFFFFF" stroke="#5C4938" stroke-width="2" stroke-linecap="round"/>
                                 <ellipse cx="20" cy="43" rx="4.5" ry="2.6" fill="#F9C5BD"/><ellipse cx="52" cy="43" rx="4.5" ry="2.6" fill="#F9C5BD"/>
                                 <g id="rice-face">
                                     <circle cx="25" cy="39" r="2.2" fill="#5C4938"/><circle cx="47" cy="39" r="2.2" fill="#5C4938"/>
@@ -567,7 +577,6 @@
                     </button>
                 </div>
             </div>
-
             <!-- 手機版點開「詳細」後才展開的面板 -->
             <div id="mobile-header-detail-panel" class="hidden sm:hidden w-full sumikko-card-sm bg-[#FFFDF9] p-3 space-y-2.5 text-xs font-bold mt-2 relative z-10">
                 <div class="flex items-center justify-between gap-2">
