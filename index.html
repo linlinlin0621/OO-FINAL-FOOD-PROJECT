@@ -510,12 +510,79 @@
         <header class="sumikko-card corner-wall-bg p-3.5 sm:p-6 mb-4 sm:mb-6 overflow-hidden">
             <div class="absolute top-0 left-28 bottom-0 border-l-2 border-dashed border-[#DFD5C6] pointer-events-none hidden sm:block"></div>
 
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 relative z-10">
-                <!-- 左側：吉祥物「阿蝦」與「米米」 (手機版改為精簡橫排不佔版面) -->
-                <div class="flex flex-row items-center gap-3 sm:gap-4 text-left w-full sm:w-auto">
+            <!-- 手機版：呷蝦米 + 角色 + 今日簽到 + 詳細資訊 排在同一行 -->
+            <div class="flex sm:hidden items-center justify-between gap-1.5 w-full flex-nowrap relative z-10">
+                <div class="flex items-center gap-1.5 min-w-0">
+                    <div id="m-header-mascot-stage" data-action="cycle-mood" title="點我換阿蝦與米米的表情！"
+                         class="relative w-16 h-12 flex-shrink-0 cursor-pointer select-none">
+                        <svg viewBox="0 0 185 120" class="w-full h-full overflow-visible squishy-idle">
+                            <ellipse cx="92" cy="106" rx="76" ry="9" fill="#E5DDD0"/>
+                            <g transform="translate(28, 22)">
+                                <path d="M22 16 C14 4 24 -2 31 8 C34 -3 44 -3 43 9 C52 2 58 10 48 18 Z" fill="#E87A64" stroke="#5C4938" stroke-width="2.2" stroke-linejoin="round"/>
+                                <path d="M18 22 C11 26 9 36 12 45 C8 54 11 66 19 72 C27 78 47 78 55 72 C63 66 65 54 61 45 C64 36 61 26 54 22 C46 16 26 16 18 22 Z" fill="#F3D39A" stroke="#5C4938" stroke-width="2.2" stroke-linejoin="round"/>
+                                <ellipse cx="21" cy="49" rx="4.5" ry="2.6" fill="#F59B90" opacity="0.75"/><ellipse cx="52" cy="49" rx="4.5" ry="2.6" fill="#F59B90" opacity="0.75"/>
+                                <g id="m-shrimp-face">
+                                    <circle cx="26" cy="45" r="2.2" fill="#5C4938"/><circle cx="47" cy="45" r="2.2" fill="#5C4938"/>
+                                    <path d="M33.5 46 Q35 48.2 36.5 46 Q38 48.2 39.5 46" stroke="#5C4938" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                                </g>
+                            </g>
+                            <g transform="translate(94, 28)">
+                                <path d="M36 8 C54 8 68 36 65 56 C63 68 52 72 36 72 C20 72 9 68 7 56 C4 36 18 8 36 8 Z" fill="#FFFFFF" stroke="#5C4938" stroke-width="2.2" stroke-linejoin="round"/>
+                                <circle cx="36" cy="15" r="4.5" fill="#E87A64" stroke="#5C4938" stroke-width="1.8"/>
+                                <rect x="25" y="54" width="22" height="17" rx="3" fill="#5C4938"/>
+                                <ellipse cx="20" cy="43" rx="4.5" ry="2.6" fill="#F9C5BD"/><ellipse cx="52" cy="43" rx="4.5" ry="2.6" fill="#F9C5BD"/>
+                                <g id="m-rice-face">
+                                    <circle cx="25" cy="39" r="2.2" fill="#5C4938"/><circle cx="47" cy="39" r="2.2" fill="#5C4938"/>
+                                    <path d="M34 40.5 H38" stroke="#5C4938" stroke-width="1.8" stroke-linecap="round"/>
+                                </g>
+                            </g>
+                        </svg>
+                    </div>
+                    <h1 class="font-hand text-3xl font-black tracking-wide text-[#5C4938] whitespace-nowrap leading-none">
+                        呷蝦米
+                    </h1>
+                </div>
+
+                <div class="flex items-center gap-1.5 flex-shrink-0">
+                    <button type="button" data-action="open-checkin"
+                        class="relative capsule-btn bg-[#F9C5BD] text-[11px] py-1.5 px-2.5">
+                        <span id="m-header-checkin-text">每日簽到</span>
+                        <span id="m-checkin-red-dot" class="hidden absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#E87A64] border-2 border-[#5C4938]"></span>
+                    </button>
+                    <button type="button" id="btn-toggle-mobile-header-detail"
+                        class="capsule-btn bg-[#FFF9E6] text-[11px] py-1.5 px-2.5">
+                        <span>詳細 ▾</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 手機版點開「詳細」後才展開的面板（蝦米幣、同步狀態、介面色系、新增私房店、定位） -->
+            <div id="mobile-header-detail-panel" class="hidden sm:hidden w-full sumikko-card-sm bg-[#FFFDF9] p-3 space-y-2.5 text-xs font-bold mt-2 relative z-10">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="text-[#857262]">酥脆蝦米幣：<strong id="m-detail-coin-balance" class="text-sm font-black text-[#E87A64]">0</strong> 枚</span>
+                    <span id="m-detail-sync-text" class="text-[#5C4938] font-black truncate">同步狀態確認中...</span>
+                </div>
+                <div id="m-detail-theme-slot" class="pt-1 border-t border-dashed border-[#DFD5C6]"></div>
+                <div class="flex flex-wrap gap-1.5 pt-1 border-t border-dashed border-[#DFD5C6]">
+                    <button type="button" data-action="open-add-store" class="capsule-btn bg-[#A8D8B9] text-xs py-1 px-2.5 flex-1">
+                        <span>+ 新增私房店</span>
+                    </button>
+                    <button type="button" data-action="locate-user" class="capsule-btn bg-white text-xs py-1 px-2.5 flex-1">
+                        <span>定位位置</span>
+                    </button>
+                    <button type="button" data-action="open-location-picker" class="capsule-btn bg-[#FCE8A6] text-xs py-1 px-2.5 flex-1">
+                        <span>手動選點</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 桌機與平板完整版（手機版隱藏） -->
+            <div class="hidden sm:flex flex-row items-center justify-between gap-4 relative z-10">
+                <!-- 左側：吉祥物「阿蝦」與「米米」 -->
+                <div class="flex flex-row items-center gap-4 text-left w-auto">
                     <div id="header-mascot-stage" data-action="cycle-mood" title="點我換阿蝦與米米的表情！"
-                         class="relative w-28 h-20 sm:w-40 sm:h-28 flex-shrink-0 cursor-pointer group select-none">
-                        <div id="mascot-speech" class="hidden sm:block absolute -top-2 left-1/2 -translate-x-1/2 z-20 whitespace-nowrap bg-white border-2 border-[#5C4938] rounded-full px-2.5 py-0.5 text-[11px] font-bold text-[#5C4938] shadow-sm transition-all">
+                         class="relative w-40 h-28 flex-shrink-0 cursor-pointer group select-none">
+                        <div id="mascot-speech" class="absolute -top-2 left-1/2 -translate-x-1/2 z-20 whitespace-nowrap bg-white border-2 border-[#5C4938] rounded-full px-2.5 py-0.5 text-[11px] font-bold text-[#5C4938] shadow-sm transition-all">
                             今天想吃什麼好料呢... (點我)
                         </div>
                         <svg id="header-mascot-svg" viewBox="0 0 185 120" class="w-full h-full overflow-visible squishy-idle">
@@ -560,91 +627,24 @@
                     </div>
 
                     <div class="min-w-0 flex-1">
-                        <div class="hidden sm:inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#FCE8A6] border-2 border-[#5C4938] text-xs font-bold mb-1">
+                        <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#FCE8A6] border-2 border-[#5C4938] text-xs font-bold mb-1">
                             <span>SHIAMI YUNTECH FOODIE</span>
                         </div>
-                        <h1 class="font-hand text-2xl sm:text-4xl font-black tracking-wide text-[#5C4938] flex flex-wrap items-center justify-start gap-1.5 sm:gap-2">
+                        <h1 class="font-hand text-4xl font-black tracking-wide text-[#5C4938] flex flex-wrap items-center justify-start gap-2">
                             <span class="whitespace-nowrap">呷蝦米</span>
-                            <span class="text-[11px] sm:text-base font-bold bg-[#F7A072] text-white px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border-2 border-[#5C4938] shadow-[0_2px_0_#5C4938] whitespace-nowrap">
+                            <span class="text-base font-bold bg-[#F7A072] text-white px-3 py-1 rounded-full border-2 border-[#5C4938] shadow-[0_2px_0_#5C4938] whitespace-nowrap">
                                 雲科美食手帳
                             </span>
                         </h1>
-                        <p class="hidden sm:block text-xs sm:text-sm font-bold text-[#857262] mt-1">
+                        <p class="text-sm font-bold text-[#857262] mt-1">
                             阿蝦與米米陪你探索雲科周邊的每一口幸福美味
                         </p>
                     </div>
                 </div>
 
-                <!-- 手機版：呷蝦米 + 角色 + 今日簽到 + 詳細資訊 排在同一行 -->
-                <div class="flex sm:hidden items-center justify-between gap-1.5 w-full flex-nowrap">
-                    <div class="flex items-center gap-1.5 min-w-0">
-                        <div id="header-mascot-stage" data-action="cycle-mood" title="點我換阿蝦與米米的表情！"
-                             class="relative w-16 h-12 flex-shrink-0 cursor-pointer select-none">
-                            <svg id="header-mascot-svg" viewBox="0 0 185 120" class="w-full h-full overflow-visible squishy-idle">
-                                <ellipse cx="92" cy="106" rx="76" ry="9" fill="#E5DDD0"/>
-                                <g transform="translate(28, 22)">
-                                    <path d="M22 16 C14 4 24 -2 31 8 C34 -3 44 -3 43 9 C52 2 58 10 48 18 Z" fill="#E87A64" stroke="#5C4938" stroke-width="2.2" stroke-linejoin="round"/>
-                                    <path d="M18 22 C11 26 9 36 12 45 C8 54 11 66 19 72 C27 78 47 78 55 72 C63 66 65 54 61 45 C64 36 61 26 54 22 C46 16 26 16 18 22 Z" fill="#F3D39A" stroke="#5C4938" stroke-width="2.2" stroke-linejoin="round"/>
-                                    <ellipse cx="21" cy="49" rx="4.5" ry="2.6" fill="#F59B90" opacity="0.75"/><ellipse cx="52" cy="49" rx="4.5" ry="2.6" fill="#F59B90" opacity="0.75"/>
-                                    <g id="shrimp-face">
-                                        <circle cx="26" cy="45" r="2.2" fill="#5C4938"/><circle cx="47" cy="45" r="2.2" fill="#5C4938"/>
-                                        <path d="M33.5 46 Q35 48.2 36.5 46 Q38 48.2 39.5 46" stroke="#5C4938" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                                    </g>
-                                </g>
-                                <g transform="translate(94, 28)">
-                                    <path d="M36 8 C54 8 68 36 65 56 C63 68 52 72 36 72 C20 72 9 68 7 56 C4 36 18 8 36 8 Z" fill="#FFFFFF" stroke="#5C4938" stroke-width="2.2" stroke-linejoin="round"/>
-                                    <circle cx="36" cy="15" r="4.5" fill="#E87A64" stroke="#5C4938" stroke-width="1.8"/>
-                                    <rect x="25" y="54" width="22" height="17" rx="3" fill="#5C4938"/>
-                                    <ellipse cx="20" cy="43" rx="4.5" ry="2.6" fill="#F9C5BD"/><ellipse cx="52" cy="43" rx="4.5" ry="2.6" fill="#F9C5BD"/>
-                                    <g id="rice-face">
-                                        <circle cx="25" cy="39" r="2.2" fill="#5C4938"/><circle cx="47" cy="39" r="2.2" fill="#5C4938"/>
-                                        <path d="M34 40.5 H38" stroke="#5C4938" stroke-width="1.8" stroke-linecap="round"/>
-                                    </g>
-                                </g>
-                            </svg>
-                        </div>
-                        <h1 class="font-hand text-3xl font-black tracking-wide text-[#5C4938] whitespace-nowrap leading-none">
-                            呷蝦米
-                        </h1>
-                    </div>
-
-                    <div class="flex items-center gap-1.5 flex-shrink-0">
-                        <button type="button" data-action="open-checkin"
-                            class="relative capsule-btn bg-[#F9C5BD] text-[11px] py-1.5 px-2.5">
-                            <span id="m-header-checkin-text">每日簽到</span>
-                            <span id="m-checkin-red-dot" class="hidden absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#E87A64] border-2 border-[#5C4938]"></span>
-                        </button>
-                        <button type="button" id="btn-toggle-mobile-header-detail"
-                            class="capsule-btn bg-[#FFF9E6] text-[11px] py-1.5 px-2.5">
-                            <span>詳細 ▾</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 手機版點開「詳細」後才展開的面板（蝦米幣、同步狀態、介面色系、新增私房店、定位） -->
-                <div id="mobile-header-detail-panel" class="hidden sm:hidden w-full sumikko-card-sm bg-[#FFFDF9] p-3 space-y-2.5 text-xs font-bold mt-2">
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="text-[#857262]">酥脆蝦米幣：<strong id="m-detail-coin-balance" class="text-sm font-black text-[#E87A64]">0</strong> 枚</span>
-                        <span id="m-detail-sync-text" class="text-[#5C4938] font-black truncate">同步狀態確認中...</span>
-                    </div>
-                    <!-- 介面色系切換會自動搬移到這裡（手機版） -->
-                    <div id="m-detail-theme-slot" class="pt-1 border-t border-dashed border-[#DFD5C6]"></div>
-                    <div class="flex flex-wrap gap-1.5 pt-1 border-t border-dashed border-[#DFD5C6]">
-                        <button type="button" data-action="open-add-store" class="capsule-btn bg-[#A8D8B9] text-xs py-1 px-2.5 flex-1">
-                            <span>+ 新增私房店</span>
-                        </button>
-                        <button type="button" data-action="locate-user" class="capsule-btn bg-white text-xs py-1 px-2.5 flex-1">
-                            <span>定位位置</span>
-                        </button>
-                        <button type="button" data-action="open-location-picker" class="capsule-btn bg-[#FCE8A6] text-xs py-1 px-2.5 flex-1">
-                            <span>手動選點</span>
-                        </button>
-                    </div>
-                </div>
-
                 <!-- 右側：蝦米幣、每日簽到、新增店家與同步狀態 -->
-                <div class="flex flex-col sm:items-end gap-2.5 self-stretch sm:self-auto">
-                    <div class="flex flex-wrap items-center justify-center sm:justify-end gap-2">
+                <div class="flex flex-col items-end gap-2.5 self-auto">
+                    <div class="flex flex-wrap items-center justify-end gap-2">
                         <div class="relative">
                             <button type="button" data-action="open-checkin" title="點擊查看蝦米幣與每日簽到集點卡"
                                 class="sumikko-card-sm bg-[#FFF9E6] hover:bg-[#FCE8A6] px-3.5 py-1.5 flex items-center gap-2 transition cursor-pointer">
@@ -657,7 +657,7 @@
                                 </svg>
                                 <div class="text-left">
                                     <div class="text-[10px] font-bold text-[#857262] leading-none">酥脆蝦米幣</div>
-                                    <div id="header-coin-balance" class="text-sm sm:text-base font-black text-[#5C4938] leading-tight">0</div>
+                                    <div id="header-coin-balance" class="text-base font-black text-[#5C4938] leading-tight">0</div>
                                 </div>
                             </button>
                             <div id="coin-float-container" class="pointer-events-none absolute -top-2 right-1 z-30"></div>
@@ -684,7 +684,7 @@
                         </button>
                     </div>
 
-                    <div class="flex flex-wrap items-center justify-center sm:justify-end gap-2">
+                    <div class="flex flex-wrap items-center justify-end gap-2">
                         <div id="sync-status" class="sumikko-card-sm px-3.5 py-1.5 bg-[#FFF9E6] flex items-center gap-2 text-xs font-bold justify-center">
                             <svg class="w-4 h-4 animate-spin text-[#F7A072]" viewBox="0 0 24 24" fill="none">
                                 <circle cx="12" cy="12" r="9" stroke="#5C4938" stroke-width="2.2" stroke-dasharray="28 14" stroke-linecap="round"/>
