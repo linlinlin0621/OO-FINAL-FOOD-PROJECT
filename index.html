@@ -5401,5 +5401,346 @@
         });
     })();
     </script>
+    <script>
+(function initShiamiDivinationAddOn() {
+    const DIVINATION_ITEMS = [
+        {
+            id: 'wheel',
+            name: '蝦米幸運盲盒轉盤',
+            cost: 0,
+            btnText: '轉動呷蝦米幸運盲盒',
+            desc: '經典 6 格美食盲盒轉盤，由炸蝦尾指針為你指明方向！',
+            svg: `<svg viewBox="0 0 48 48" class="w-12 h-12"><circle cx="24" cy="24" r="18" fill="#F9C5BD" stroke="#5C4938" stroke-width="2.2"/><path d="M24 6V42M6 24H42M11 11L37 37M37 11L11 37" stroke="#5C4938" stroke-width="1.6"/><circle cx="24" cy="24" r="6" fill="#FCE8A6" stroke="#5C4938" stroke-width="2"/></svg>`
+        },
+        {
+            id: 'crystal',
+            name: '米米星空水晶球',
+            cost: 140,
+            btnText: '凝視星空水晶球占卜',
+            desc: '小巫師米米守護的粉紫水晶球，感應宇宙星象為你預言今日必吃好店！',
+            svg: `<svg viewBox="0 0 48 48" class="w-12 h-12"><path d="M13 38H35L38 43H10Z" fill="#F3D39A" stroke="#5C4938" stroke-width="2" stroke-linejoin="round"/><circle cx="24" cy="22" r="15" fill="#D9C8EC" stroke="#5C4938" stroke-width="2.2"/><path d="M16 16Q20 11 25 11" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/><circle cx="24" cy="23" r="5" fill="#FFFFFF" stroke="#5C4938" stroke-width="1.6"/></svg>`
+        },
+        {
+            id: 'tarot',
+            name: '阿蝦命運塔羅牌',
+            cost: 180,
+            btnText: '抽取今日美食塔羅牌',
+            desc: '充滿儀式感的金邊手繪塔羅牌組，洗牌後翻出專屬於你的命定餐廳！',
+            svg: `<svg viewBox="0 0 48 48" class="w-12 h-12"><rect x="10" y="9" width="18" height="28" rx="4" transform="rotate(-10 10 9)" fill="#BBE2F2" stroke="#5C4938" stroke-width="2"/><rect x="19" y="7" width="20" height="30" rx="4" transform="rotate(6 19 7)" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.2"/><circle cx="28" cy="22" r="5" fill="#F7A072" stroke="#5C4938" stroke-width="1.6"/></svg>`
+        },
+        {
+            id: 'tortoise',
+            name: '神算小龜殼卜卦',
+            cost: 220,
+            btnText: '搖動小龜殼擲卦象',
+            desc: '超萌豆豆眼小龜殼搭配三枚蝦米銅錢，搖出今日飽足感滿分的上上籤！',
+            svg: `<svg viewBox="0 0 48 48" class="w-12 h-12"><path d="M10 31C10 17 38 17 38 31Z" fill="#A8D8B9" stroke="#5C4938" stroke-width="2.2"/><rect x="8" y="30" width="32" height="5" rx="2.5" fill="#F3D39A" stroke="#5C4938" stroke-width="2"/><circle cx="17" cy="11" r="4" fill="#FCE8A6" stroke="#5C4938" stroke-width="1.6"/><circle cx="31" cy="11" r="4" fill="#F7A072" stroke="#5C4938" stroke-width="1.6"/></svg>`
+        }
+    ];
+
+    const DIV_STORAGE_KEY = 'shiami_divination_tools_v1';
+    let divState = { owned: ['wheel'], active: 'wheel' };
+
+    try {
+        const saved = JSON.parse(localStorage.getItem(DIV_STORAGE_KEY) || 'null');
+        if (saved && Array.isArray(saved.owned) && saved.owned.length) {
+            divState = {
+                owned: Array.from(new Set(['wheel', ...saved.owned])),
+                active: saved.active || 'wheel'
+            };
+        }
+    } catch (e) {}
+
+    function persistDivState() {
+        try {
+            localStorage.setItem(DIV_STORAGE_KEY, JSON.stringify(divState));
+        } catch (e) {}
+    }
+
+    // 注入動畫樣式
+    const styleEl = document.createElement('style');
+    styleEl.textContent = `
+        @keyframes divCrystalPulse {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px rgba(217, 200, 236, 0.85)); }
+            50% { transform: scale(1.06); filter: drop-shadow(0 0 18px rgba(247, 160, 114, 0.95)); }
+        }
+        .div-crystal-anim { animation: divCrystalPulse 0.65s ease-in-out infinite; }
+        @keyframes divTarotShuffle {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            25% { transform: translateX(-14px) rotate(-8deg); }
+            50% { transform: translateX(14px) rotate(8deg); }
+            75% { transform: translateX(-8px) rotate(-4deg); }
+        }
+        .div-tarot-anim { animation: divTarotShuffle 0.55s ease-in-out infinite; }
+        @keyframes divTortoiseShake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(-6px, -8px) rotate(-12deg); }
+            40% { transform: translate(6px, -10px) rotate(12deg); }
+            60% { transform: translate(-5px, -6px) rotate(-8deg); }
+            80% { transform: translate(5px, -8px) rotate(8deg); }
+        }
+        .div-tortoise-anim { animation: divTortoiseShake 0.45s ease-in-out infinite; }
+    `;
+    document.head.appendChild(styleEl);
+
+    // 在抽籤區插入水晶球、塔羅牌、龜殼舞台與切換膠囊
+    function mountDivinationStages() {
+        const drawBtn = document.getElementById('btn-draw');
+        if (!drawBtn || document.getElementById('div-extra-stages-wrap')) return;
+        const btnWrap = drawBtn.parentElement;
+        if (!btnWrap || !btnWrap.parentElement) return;
+
+        const stagesHtml = `
+            <div id="div-extra-stages-wrap" class="w-full flex flex-col items-center">
+                <div id="div-stage-crystal" class="hidden relative w-72 h-72 sm:w-80 sm:h-80 my-2 flex-col items-center justify-center cursor-pointer" title="點我占卜">
+                    <div id="div-crystal-orb" class="w-56 h-56 flex items-center justify-center squishy-idle">
+                        <svg viewBox="0 0 220 220" class="w-full h-full overflow-visible">
+                            <ellipse cx="110" cy="202" rx="68" ry="10" fill="#E5DDD0"/>
+                            <path d="M58 178 C64 164 156 164 162 178 L170 194 C150 202 70 202 50 194 Z" fill="#F3D39A" stroke="#5C4938" stroke-width="3" stroke-linejoin="round"/>
+                            <path d="M68 184 H152" stroke="#5C4938" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="6 6"/>
+                            <circle cx="110" cy="106" r="74" fill="#D9C8EC" stroke="#5C4938" stroke-width="3.2"/>
+                            <circle cx="110" cy="106" r="64" fill="#BBE2F2" opacity="0.65"/>
+                            <path d="M66 76 Q82 54 106 54" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
+                            <circle cx="62" cy="88" r="3" fill="#FFFFFF"/>
+                            <path d="M146 72 L149 79 L156 82 L149 85 L146 92 L143 85 L136 82 L143 79 Z" fill="#FCE8A6" stroke="#5C4938" stroke-width="1.5"/>
+                            <g transform="translate(74, 74)">
+                                <path d="M22 14 L36 -6 L50 14 Z" fill="#5C4938" stroke="#5C4938" stroke-width="2" stroke-linejoin="round"/>
+                                <ellipse cx="36" cy="14" rx="20" ry="4.5" fill="#F7A072" stroke="#5C4938" stroke-width="2"/>
+                                <path d="M36 16 C52 16 62 38 60 56 C58 66 48 68 36 68 C24 68 14 66 12 56 C10 38 20 16 36 16 Z" fill="#FFFFFF" stroke="#5C4938" stroke-width="2.4"/>
+                                <rect x="26" y="52" width="20" height="15" rx="2.5" fill="#5C4938"/>
+                                <circle cx="26" cy="40" r="2.3" fill="#5C4938"/><circle cx="46" cy="40" r="2.3" fill="#5C4938"/>
+                                <path d="M33 42 Q36 45 39 42" stroke="#5C4938" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                                <ellipse cx="21" cy="43" rx="3.8" ry="2" fill="#F9C5BD"/><ellipse cx="51" cy="43" rx="3.8" ry="2" fill="#F9C5BD"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <span class="mt-1 px-3.5 py-1 rounded-full bg-[#D9C8EC] border-2 border-[#5C4938] text-xs font-black text-[#5C4938]">✨ 米米星空水晶球（點我占卜）</span>
+                </div>
+
+                <div id="div-stage-tarot" class="hidden relative w-72 h-72 sm:w-80 sm:h-80 my-2 flex-col items-center justify-center cursor-pointer" title="點我翻牌">
+                    <div id="div-tarot-deck" class="flex items-center justify-center gap-2.5 py-2">
+                        <div class="w-20 h-32 rounded-2xl bg-[#BBE2F2] border-[2.5px] border-[#5C4938] shadow-[0_4px_0_#5C4938] p-1.5 -rotate-6">
+                            <div class="w-full h-full rounded-xl border-2 border-dashed border-[#5C4938] bg-[#FFFDF9] flex flex-col items-center justify-center">
+                                <span class="text-[10px] font-black">I. 飯糰月</span>
+                                <span class="text-lg my-1">🍙</span>
+                                <span class="text-[9px] font-bold text-[#857262]">暖胃安神</span>
+                            </div>
+                        </div>
+                        <div class="w-24 h-36 rounded-2xl bg-[#FCE8A6] border-[2.8px] border-[#5C4938] shadow-[0_5px_0_#5C4938] p-1.5 z-10 -translate-y-2">
+                            <div class="w-full h-full rounded-xl border-2 border-dashed border-[#5C4938] bg-[#FFFDF9] flex flex-col items-center justify-center">
+                                <span class="text-[10px] font-black text-[#E87A64]">★ 命運炸蝦 ★</span>
+                                <span class="text-2xl my-1">🍤</span>
+                                <span class="text-[10px] font-black">點擊翻牌</span>
+                            </div>
+                        </div>
+                        <div class="w-20 h-32 rounded-2xl bg-[#F9C5BD] border-[2.5px] border-[#5C4938] shadow-[0_4px_0_#5C4938] p-1.5 rotate-6">
+                            <div class="w-full h-full rounded-xl border-2 border-dashed border-[#5C4938] bg-[#FFFDF9] flex flex-col items-center justify-center">
+                                <span class="text-[10px] font-black">II. 珍珠星</span>
+                                <span class="text-lg my-1">🧋</span>
+                                <span class="text-[9px] font-bold text-[#857262]">甜蜜驚喜</span>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="mt-2 px-3.5 py-1 rounded-full bg-[#FCE8A6] border-2 border-[#5C4938] text-xs font-black text-[#5C4938]">🃏 阿蝦命運塔羅牌（點我翻牌）</span>
+                </div>
+
+                <div id="div-stage-tortoise" class="hidden relative w-72 h-72 sm:w-80 sm:h-80 my-2 flex-col items-center justify-center cursor-pointer" title="點我卜卦">
+                    <div id="div-tortoise-shell" class="w-56 h-52 flex items-center justify-center squishy-idle">
+                        <svg viewBox="0 0 220 200" class="w-full h-full overflow-visible">
+                            <ellipse cx="110" cy="166" rx="74" ry="11" fill="#E5DDD0"/>
+                            <ellipse cx="64" cy="148" rx="14" ry="9" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.6"/>
+                            <ellipse cx="156" cy="148" rx="14" ry="9" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.6"/>
+                            <path d="M32 126 C26 114 38 102 54 108 L68 118 L56 138 C42 140 34 134 32 126 Z" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.6" stroke-linejoin="round"/>
+                            <circle cx="42" cy="118" r="2.2" fill="#5C4938"/>
+                            <ellipse cx="46" cy="124" rx="3.2" ry="1.8" fill="#F9C5BD"/>
+                            <path d="M52 134 C52 72 168 72 168 134 Z" fill="#A8D8B9" stroke="#5C4938" stroke-width="3.2" stroke-linejoin="round"/>
+                            <polygon points="110,88 130,100 130,120 110,130 90,120 90,100" fill="#EAF6EE" stroke="#5C4938" stroke-width="2.2"/>
+                            <path d="M110 76 V88 M90 100 L66 96 M130 100 L154 96 M90 120 L64 128 M130 120 L156 128" stroke="#5C4938" stroke-width="2.2" stroke-linecap="round"/>
+                            <rect x="46" y="130" width="128" height="14" rx="7" fill="#F3D39A" stroke="#5C4938" stroke-width="2.8"/>
+                            <circle cx="80" cy="50" r="14" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.2"/>
+                            <circle cx="112" cy="34" r="14" fill="#F7A072" stroke="#5C4938" stroke-width="2.2"/>
+                            <circle cx="144" cy="52" r="14" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.2"/>
+                        </svg>
+                    </div>
+                    <span class="mt-1 px-3.5 py-1 rounded-full bg-[#A8D8B9] border-2 border-[#5C4938] text-xs font-black text-[#5C4938]">🐢 神算小龜殼卜卦（點我擲卦）</span>
+                </div>
+
+                <div id="div-quick-bar" class="flex flex-wrap items-center justify-center gap-1.5 mt-1"></div>
+            </div>
+        `;
+        btnWrap.parentElement.insertBefore(
+            document.createRange().createContextualFragment(stagesHtml),
+            btnWrap
+        );
+
+        ['crystal', 'tarot', 'tortoise'].forEach(mode => {
+            const st = document.getElementById(`div-stage-${mode}`);
+            if (st) {
+                st.addEventListener('click', () => {
+                    if (typeof startPickProcess === 'function') startPickProcess();
+                });
+            }
+        });
+    }
+
+    // 在商店分頁插入「神秘美食占卜抽籤器」商品卡
+    function mountDivinationShop() {
+        const decorsGrid = document.getElementById('shop-decors-grid');
+        if (!decorsGrid || document.getElementById('div-shop-section')) return;
+        const parentSec = decorsGrid.closest('section');
+        if (!parentSec || !parentSec.parentElement) return;
+
+        const secHtml = `
+            <section id="div-shop-section" class="sumikko-card p-5 sm:p-6 bg-white">
+                <h3 class="text-base sm:text-lg font-black text-[#5C4938] mb-3 flex items-center gap-2">
+                    <span>🔮 神秘美食占卜抽籤器（購買後可把轉盤換成水晶球、塔羅牌或卜卦龜殼！）</span>
+                </h3>
+                <div id="div-shop-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+            </section>
+        `;
+        parentSec.parentElement.insertBefore(
+            document.createRange().createContextualFragment(secHtml),
+            parentSec.nextSibling
+        );
+        renderDivinationShopCards();
+    }
+
+    function renderDivinationShopCards() {
+        const grid = document.getElementById('div-shop-grid');
+        if (!grid) return;
+
+        grid.innerHTML = DIVINATION_ITEMS.map(item => {
+            const owned = divState.owned.includes(item.id);
+            const active = divState.active === item.id;
+            return `
+                <div class="sumikko-card-sm ${active ? 'bg-[#FFFDF7]' : 'bg-white'} p-4 flex flex-col justify-between gap-3 text-center">
+                    <div class="flex flex-col items-center">
+                        <div class="w-16 h-16 rounded-2xl bg-[#FAF6F0] border-2 border-[#5C4938] flex items-center justify-center mb-2">
+                            ${item.svg}
+                        </div>
+                        <h4 class="font-hand text-base font-black text-[#5C4938]">${item.name}</h4>
+                        <p class="text-xs font-bold text-[#857262] mt-1">${item.desc}</p>
+                    </div>
+                    <button type="button" data-div-buy="${item.id}"
+                        class="capsule-btn w-full text-xs py-1.5 ${active ? 'bg-[#A8D8B9]' : (owned ? 'bg-white' : 'bg-[#FCE8A6]')}">
+                        <span>${active ? '目前使用中' : (owned ? '套用此道具' : `購買 (${item.cost} 幣)`)}</span>
+                    </button>
+                </div>
+            `;
+        }).join('');
+
+        grid.querySelectorAll('[data-div-buy]').forEach(btn => {
+            btn.addEventListener('click', () => handleBuyOrEquip(btn.getAttribute('data-div-buy')));
+        });
+    }
+
+    function handleBuyOrEquip(id) {
+        const item = DIVINATION_ITEMS.find(d => d.id === id);
+        if (!item) return;
+
+        if (!divState.owned.includes(id)) {
+            const coins = (typeof economyState !== 'undefined' && typeof economyState.coins === 'number')
+                ? economyState.coins : 0;
+            if (coins < item.cost) {
+                if (typeof showSumikkoToast === 'function') {
+                    showSumikkoToast(`蝦米幣不夠喔！還差 ${item.cost - coins} 枚～`);
+                }
+                return;
+            }
+            economyState.coins -= item.cost;
+            if (typeof saveEconomyToStorage === 'function') saveEconomyToStorage();
+            divState.owned.push(id);
+            if (typeof firePastelConfetti === 'function') firePastelConfetti();
+            if (typeof showSumikkoToast === 'function') {
+                showSumikkoToast(`解鎖成功！「${item.name}」已套用！`);
+            }
+        } else if (typeof showSumikkoToast === 'function') {
+            showSumikkoToast(`已切換抽籤器為「${item.name}」！`);
+        }
+
+        divState.active = id;
+        persistDivState();
+        applyDivinationMode();
+        renderDivinationShopCards();
+    }
+
+    function applyDivinationMode() {
+        const active = divState.active || 'wheel';
+        // 尋找原本的轉盤外框（包含 #roulette-wheel 的那個容器）
+        const wheelInner = document.getElementById('roulette-wheel');
+        const wheelStage = wheelInner ? wheelInner.closest('.relative.w-72') : null;
+        if (wheelStage) {
+            wheelStage.style.display = (active === 'wheel') ? '' : 'none';
+        }
+
+        ['crystal', 'tarot', 'tortoise'].forEach(mode => {
+            const el = document.getElementById(`div-stage-${mode}`);
+            if (!el) return;
+            if (mode === active) {
+                el.classList.remove('hidden');
+                el.classList.add('flex');
+            } else {
+                el.classList.add('hidden');
+                el.classList.remove('flex');
+            }
+        });
+
+        const curItem = DIVINATION_ITEMS.find(d => d.id === active) || DIVINATION_ITEMS[0];
+        const drawText = document.getElementById('btn-draw-text');
+        if (drawText) drawText.textContent = curItem.btnText;
+
+        const quickBar = document.getElementById('div-quick-bar');
+        if (quickBar) {
+            const icons = { wheel: '🎡', crystal: '🔮', tarot: '🃏', tortoise: '🐢' };
+            quickBar.innerHTML = DIVINATION_ITEMS.filter(d => divState.owned.includes(d.id)).map(d => {
+                const isCur = d.id === active;
+                return `
+                    <button type="button" data-div-quick="${d.id}"
+                        class="px-2.5 py-1 rounded-full border-2 border-[#5C4938] text-[11px] font-black transition ${isCur ? 'bg-[#FCE8A6] shadow-[0_2px_0_#5C4938]' : 'bg-white text-[#857262]'}">
+                        <span>${icons[d.id]} ${d.name.replace('蝦米', '').replace('神算', '')}</span>
+                    </button>
+                `;
+            }).join('');
+
+            quickBar.querySelectorAll('[data-div-quick]').forEach(btn => {
+                btn.addEventListener('click', () => handleBuyOrEquip(btn.getAttribute('data-div-quick')));
+            });
+        }
+    }
+
+    // 抽籤按下時幫水晶球／塔羅牌／龜殼加上動態特效
+    const drawBtn = document.getElementById('btn-draw');
+    if (drawBtn) {
+        drawBtn.addEventListener('click', () => {
+            if (divState.active === 'crystal') {
+                const orb = document.getElementById('div-crystal-orb');
+                orb?.classList.add('div-crystal-anim');
+                setTimeout(() => orb?.classList.remove('div-crystal-anim'), 2200);
+            } else if (divState.active === 'tarot') {
+                const deck = document.getElementById('div-tarot-deck');
+                deck?.classList.add('div-tarot-anim');
+                setTimeout(() => deck?.classList.remove('div-tarot-anim'), 2200);
+            } else if (divState.active === 'tortoise') {
+                const shell = document.getElementById('div-tortoise-shell');
+                shell?.classList.add('div-tortoise-anim');
+                setTimeout(() => shell?.classList.remove('div-tortoise-anim'), 2200);
+            }
+        });
+    }
+
+    function bootAll() {
+        mountDivinationStages();
+        mountDivinationShop();
+        applyDivinationMode();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bootAll);
+    } else {
+        bootAll();
+    }
+    setTimeout(bootAll, 600);
+})();
+</script>
 </body>
 </html>
