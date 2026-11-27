@@ -5374,6 +5374,54 @@
     </script>
     <script>
 (function initShiamiDivinationAddOn() {
+    const TURTLE_STAGE_SVG = `
+        <svg viewBox="0 0 220 200" class="w-full h-full overflow-visible">
+            <!-- 地面軟陰影 -->
+            <ellipse cx="114" cy="168" rx="76" ry="11" fill="#E5DDD0"/>
+            <!-- 兩枚帶方孔的卜卦銅錢 -->
+            <g transform="translate(88, 12)">
+                <circle cx="16" cy="16" r="14" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.2"/>
+                <rect x="11.5" y="11.5" width="9" height="9" rx="1.5" fill="#FAF6F0" stroke="#5C4938" stroke-width="1.8"/>
+            </g>
+            <g transform="translate(132, 24)">
+                <circle cx="16" cy="16" r="14" fill="#F7A072" stroke="#5C4938" stroke-width="2.2"/>
+                <rect x="11.5" y="11.5" width="9" height="9" rx="1.5" fill="#FAF6F0" stroke="#5C4938" stroke-width="1.8"/>
+            </g>
+            <!-- 尖尖小尾巴 -->
+            <path d="M174 134 L194 128 L178 145 Z" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.4" stroke-linejoin="round"/>
+            <!-- 四隻圓胖小龜腳 -->
+            <ellipse cx="78" cy="150" rx="13" ry="9" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.5"/>
+            <ellipse cx="116" cy="153" rx="13" ry="9" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.5"/>
+            <ellipse cx="154" cy="150" rx="13" ry="9" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.5"/>
+            <!-- 探頭出來的呆萌小龜頭 -->
+            <path d="M64 114 C52 104 34 106 28 118 C24 127 30 137 42 138 C52 139 60 134 66 128 Z" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.6" stroke-linejoin="round"/>
+            <circle cx="40" cy="119" r="2.3" fill="#5C4938"/>
+            <path d="M31 124 H35" stroke="#5C4938" stroke-width="1.8" stroke-linecap="round"/>
+            <ellipse cx="43" cy="126" rx="3.4" ry="1.9" fill="#F9C5BD"/>
+            <!-- 圓拱形薄荷綠龜殼＋六角龜甲格紋 -->
+            <path d="M62 134 C62 72 174 72 174 134 Z" fill="#A8D8B9" stroke="#5C4938" stroke-width="3" stroke-linejoin="round"/>
+            <polygon points="118,88 138,100 138,120 118,130 98,120 98,100" fill="#EAF6EE" stroke="#5C4938" stroke-width="2.2"/>
+            <path d="M118 75 V88 M98 100 L74 96 M138 100 L162 96 M98 120 L74 128 M138 120 L162 128" stroke="#5C4938" stroke-width="2.2" stroke-linecap="round"/>
+            <!-- 龜殼底部邊緣 -->
+            <rect x="58" y="130" width="120" height="13" rx="6.5" fill="#F3D39A" stroke="#5C4938" stroke-width="2.6"/>
+        </svg>
+    `;
+
+    const TURTLE_SHOP_SVG = `
+        <svg viewBox="0 0 48 48" class="w-12 h-12">
+            <path d="M38 30 L45 27 L39 34 Z" fill="#FCE8A6" stroke="#5C4938" stroke-width="1.6" stroke-linejoin="round"/>
+            <ellipse cx="18" cy="35" rx="5" ry="3.5" fill="#FCE8A6" stroke="#5C4938" stroke-width="1.8"/>
+            <ellipse cx="32" cy="35" rx="5" ry="3.5" fill="#FCE8A6" stroke="#5C4938" stroke-width="1.8"/>
+            <path d="M15 24 C11 20 5 21 3 26 C2 30 6 33 11 33 L16 30 Z" fill="#FCE8A6" stroke="#5C4938" stroke-width="1.8" stroke-linejoin="round"/>
+            <circle cx="8" cy="26" r="1.3" fill="#5C4938"/>
+            <path d="M14 31 C14 15 38 15 38 31 Z" fill="#A8D8B9" stroke="#5C4938" stroke-width="2"/>
+            <polygon points="26,20 31,23 31,28 26,30 21,28 21,23" fill="#EAF6EE" stroke="#5C4938" stroke-width="1.4"/>
+            <rect x="13" y="30" width="26" height="4" rx="2" fill="#F3D39A" stroke="#5C4938" stroke-width="1.6"/>
+            <circle cx="22" cy="10" r="4.5" fill="#FCE8A6" stroke="#5C4938" stroke-width="1.5"/>
+            <circle cx="33" cy="12" r="4.5" fill="#F7A072" stroke="#5C4938" stroke-width="1.5"/>
+        </svg>
+    `;
+
     const DIVINATION_ITEMS = [
         {
             id: 'wheel',
@@ -5404,8 +5452,8 @@
             name: '神算小龜殼卜卦',
             cost: 220,
             btnText: '搖動小龜殼擲卦象',
-            desc: '超萌豆豆眼小龜殼搭配三枚蝦米銅錢，搖出今日飽足感滿分的上上籤！',
-            svg: `<svg viewBox="0 0 48 48" class="w-12 h-12"><path d="M10 31C10 17 38 17 38 31Z" fill="#A8D8B9" stroke="#5C4938" stroke-width="2.2"/><rect x="8" y="30" width="32" height="5" rx="2.5" fill="#F3D39A" stroke="#5C4938" stroke-width="2"/><circle cx="17" cy="11" r="4" fill="#FCE8A6" stroke="#5C4938" stroke-width="1.6"/><circle cx="31" cy="11" r="4" fill="#F7A072" stroke="#5C4938" stroke-width="1.6"/></svg>`
+            desc: '探頭小龜殼搭配龜甲格紋與占卜銅錢，搖出今日飽足感滿分的上上籤！',
+            svg: TURTLE_SHOP_SVG
         }
     ];
 
@@ -5428,7 +5476,6 @@
         } catch (e) {}
     }
 
-    // 注入動畫樣式
     const styleEl = document.createElement('style');
     styleEl.textContent = `
         @keyframes divCrystalPulse {
@@ -5454,7 +5501,6 @@
     `;
     document.head.appendChild(styleEl);
 
-    // 在抽籤區插入水晶球、塔羅牌、龜殼舞台與切換膠囊
     function mountDivinationStages() {
         const drawBtn = document.getElementById('btn-draw');
         if (!drawBtn || document.getElementById('div-extra-stages-wrap')) return;
@@ -5517,21 +5563,7 @@
 
                 <div id="div-stage-tortoise" class="hidden relative w-72 h-72 sm:w-80 sm:h-80 my-2 flex-col items-center justify-center cursor-pointer" title="點我卜卦">
                     <div id="div-tortoise-shell" class="w-56 h-52 flex items-center justify-center squishy-idle">
-                        <svg viewBox="0 0 220 200" class="w-full h-full overflow-visible">
-                            <ellipse cx="110" cy="166" rx="74" ry="11" fill="#E5DDD0"/>
-                            <ellipse cx="64" cy="148" rx="14" ry="9" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.6"/>
-                            <ellipse cx="156" cy="148" rx="14" ry="9" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.6"/>
-                            <path d="M32 126 C26 114 38 102 54 108 L68 118 L56 138 C42 140 34 134 32 126 Z" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.6" stroke-linejoin="round"/>
-                            <circle cx="42" cy="118" r="2.2" fill="#5C4938"/>
-                            <ellipse cx="46" cy="124" rx="3.2" ry="1.8" fill="#F9C5BD"/>
-                            <path d="M52 134 C52 72 168 72 168 134 Z" fill="#A8D8B9" stroke="#5C4938" stroke-width="3.2" stroke-linejoin="round"/>
-                            <polygon points="110,88 130,100 130,120 110,130 90,120 90,100" fill="#EAF6EE" stroke="#5C4938" stroke-width="2.2"/>
-                            <path d="M110 76 V88 M90 100 L66 96 M130 100 L154 96 M90 120 L64 128 M130 120 L156 128" stroke="#5C4938" stroke-width="2.2" stroke-linecap="round"/>
-                            <rect x="46" y="130" width="128" height="14" rx="7" fill="#F3D39A" stroke="#5C4938" stroke-width="2.8"/>
-                            <circle cx="80" cy="50" r="14" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.2"/>
-                            <circle cx="112" cy="34" r="14" fill="#F7A072" stroke="#5C4938" stroke-width="2.2"/>
-                            <circle cx="144" cy="52" r="14" fill="#FCE8A6" stroke="#5C4938" stroke-width="2.2"/>
-                        </svg>
+                        ${TURTLE_STAGE_SVG}
                     </div>
                     <span class="mt-1 px-3.5 py-1 rounded-full bg-[#A8D8B9] border-2 border-[#5C4938] text-xs font-black text-[#5C4938]">🐢 神算小龜殼卜卦（點我擲卦）</span>
                 </div>
@@ -5554,7 +5586,6 @@
         });
     }
 
-    // 在商店分頁插入「神秘美食占卜抽籤器」商品卡
     function mountDivinationShop() {
         const decorsGrid = document.getElementById('shop-decors-grid');
         if (!decorsGrid || document.getElementById('div-shop-section')) return;
@@ -5637,7 +5668,6 @@
 
     function applyDivinationMode() {
         const active = divState.active || 'wheel';
-        // 尋找原本的轉盤外框（包含 #roulette-wheel 的那個容器）
         const wheelInner = document.getElementById('roulette-wheel');
         const wheelStage = wheelInner ? wheelInner.closest('.relative.w-72') : null;
         if (wheelStage) {
@@ -5679,7 +5709,6 @@
         }
     }
 
-    // 抽籤按下時幫水晶球／塔羅牌／龜殼加上動態特效
     const drawBtn = document.getElementById('btn-draw');
     if (drawBtn) {
         drawBtn.addEventListener('click', () => {
