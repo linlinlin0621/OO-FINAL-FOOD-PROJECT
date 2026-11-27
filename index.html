@@ -575,6 +575,41 @@
                     </div>
                 </div>
 
+                <!-- 右側：手機版精簡為「今日簽到 + 詳細狀態」，桌機版維持完整顯示 -->
+                <div id="mobile-header-compact" class="flex sm:hidden items-center justify-end gap-2 w-full">
+                    <button type="button" data-action="open-checkin"
+                        class="relative capsule-btn bg-[#F9C5BD] text-xs py-1.5 px-3">
+                        <span id="m-header-checkin-text">每日簽到</span>
+                        <span id="m-checkin-red-dot" class="hidden absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#E87A64] border-2 border-[#5C4938]"></span>
+                    </button>
+                    <button type="button" id="btn-toggle-mobile-header-detail"
+                        class="capsule-btn bg-[#FFF9E6] text-xs py-1.5 px-3">
+                        <span>詳細資訊 ▾</span>
+                    </button>
+                </div>
+
+                <!-- 手機版點開「詳細資訊」後才展開的面板（蝦米幣、同步狀態、新增私房店、定位） -->
+                <div id="mobile-header-detail-panel" class="hidden sm:hidden w-full sumikko-card-sm bg-[#FFFDF9] p-3 space-y-2.5 text-xs font-bold">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-[#857262]">酥脆蝦米幣：<strong id="m-detail-coin-balance" class="text-sm font-black text-[#E87A64]">0</strong> 枚</span>
+                        <span id="m-detail-sync-text" class="text-[#5C4938] font-black truncate">同步狀態確認中...</span>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5 pt-1 border-t border-dashed border-[#DFD5C6]">
+                        <button type="button" data-action="open-add-store" class="capsule-btn bg-[#A8D8B9] text-xs py-1 px-2.5 flex-1">
+                            <span>+ 新增私房店</span>
+                        </button>
+                        <button type="button" data-action="locate-user" class="capsule-btn bg-white text-xs py-1 px-2.5 flex-1">
+                            <span>定位位置</span>
+                        </button>
+                        <button type="button" data-action="open-location-picker" class="capsule-btn bg-[#FCE8A6] text-xs py-1 px-2.5 flex-1">
+                            <span>手動選點</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 桌機與平板完整版控制列 -->
+                <div class="hidden sm:flex flex-col items-end gap-2.5 self-auto">
+
                 <!-- 右側：蝦米幣、每日簽到、新增店家與同步狀態 -->
                 <div class="flex flex-col sm:items-end gap-2.5 self-stretch sm:self-auto">
                     <div class="flex flex-wrap items-center justify-center sm:justify-end gap-2">
@@ -5960,6 +5995,53 @@
         setInterval(() => {
             if (currentSetting === 'auto') applyTheme();
         }, 60000);
+    })();
+    </script>
+    <script>
+    (() => {
+        'use strict';
+
+        function syncMobileHeaderSummary() {
+            const coinText = document.getElementById('header-coin-balance')?.textContent || '0';
+            const syncText = document.getElementById('sync-status')?.textContent?.trim() || '同步狀態確認中...';
+            const checkinText = document.getElementById('header-checkin-btn-text')?.textContent || '每日簽到';
+            const hasRedDot = !document.getElementById('checkin-red-dot')?.classList.contains('hidden');
+
+            const mCoin = document.getElementById('m-detail-coin-balance');
+            const mSync = document.getElementById('m-detail-sync-text');
+            const mCheckin = document.getElementById('m-header-checkin-text');
+            const mDot = document.getElementById('m-checkin-red-dot');
+
+            if (mCoin) mCoin.textContent = coinText;
+            if (mSync) mSync.textContent = syncText;
+            if (mCheckin) mCheckin.textContent = checkinText;
+            if (mDot) mDot.classList.toggle('hidden', !hasRedDot);
+        }
+
+        function bindMobileDetailToggle() {
+            const btn = document.getElementById('btn-toggle-mobile-header-detail');
+            const panel = document.getElementById('mobile-header-detail-panel');
+            if (!btn || !panel || btn.dataset.bound) return;
+            btn.dataset.bound = '1';
+
+            btn.addEventListener('click', () => {
+                const isHidden = panel.classList.toggle('hidden');
+                btn.querySelector('span').textContent = isHidden ? '詳細資訊 ▾' : '收合資訊 ▴';
+                syncMobileHeaderSummary();
+            });
+        }
+
+        function bootMobileHeader() {
+            bindMobileDetailToggle();
+            syncMobileHeaderSummary();
+            setInterval(syncMobileHeaderSummary, 800);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', bootMobileHeader);
+        } else {
+            bootMobileHeader();
+        }
     })();
     </script>
 </body>
