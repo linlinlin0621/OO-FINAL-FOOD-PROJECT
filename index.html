@@ -5885,77 +5885,83 @@
                 }
 
                 /* 晚上：深藍灰護眼氛圍 */
+                /* 晚上：深藍灰護眼氛圍（文字改為高對比淺灰） */
                 body.theme-night {
                     background-color: #1B2332 !important;
-                    color: #F4EFE6 !important;
+                    color: #E5E7EB !important;
                     background-image:
-                        radial-gradient(#2A354B 1.4px, transparent 1.4px),
-                        radial-gradient(#222C3F 1.4px, #1B2332 1.4px) !important;
+                        radial-gradient(#2D3B54 1.4px, transparent 1.4px),
+                        radial-gradient(#232E42 1.4px, #1B2332 1.4px) !important;
                 }
                 body.theme-night .sumikko-card,
                 body.theme-night .sumikko-card-sm,
                 body.theme-night .sumikko-map-wrapper,
                 body.theme-night .polaroid-frame {
-                    background-color: #253044 !important;
-                    color: #F4EFE6 !important;
-                    border-color: #8FA3C4 !important;
-                    box-shadow: 0 4px 0px #121824 !important;
+                    background-color: #253147 !important;
+                    color: #F3F4F6 !important;
+                    border-color: #94A3B8 !important;
+                    box-shadow: 0 4px 0px #111722 !important;
                 }
                 body.theme-night .corner-wall-bg {
-                    background: linear-gradient(135deg, #273349 0%, #1F293B 60%, #1B2332 100%) !important;
+                    background: linear-gradient(135deg, #283650 0%, #1E293B 60%, #1B2332 100%) !important;
                 }
                 body.theme-night .capsule-btn,
                 body.theme-night .notebook-tab {
-                    background-color: #2C3950 !important;
-                    color: #F4EFE6 !important;
-                    border-color: #8FA3C4 !important;
-                    box-shadow: 0 3px 0px #121824 !important;
+                    background-color: #2E3C56 !important;
+                    color: #E5E7EB !important;
+                    border-color: #94A3B8 !important;
+                    box-shadow: 0 3px 0px #111722 !important;
                 }
+                body.theme-night .capsule-btn span,
+                body.theme-night .notebook-tab span {
+                    color: #E5E7EB !important;
+                }
+                /* 已選中的條件膠囊：用明亮粉彩底＋深色字，一眼就能看出選了哪一個 */
                 body.theme-night .capsule-btn.active,
                 body.theme-night .notebook-tab.active {
-                    color: #3A2B1E !important;
+                    background-color: #FCE8A6 !important;
+                    color: #1F2937 !important;
+                    border-color: #F3F4F6 !important;
+                    box-shadow: 0 2px 0px #111722 !important;
+                }
+                body.theme-night .capsule-btn.active span,
+                body.theme-night .notebook-tab.active span {
+                    color: #1F2937 !important;
                 }
                 body.theme-night .mobile-bottom-nav {
-                    background: rgba(31, 41, 59, 0.96) !important;
-                    border-color: #8FA3C4 !important;
-                    box-shadow: 0 6px 0px #121824 !important;
+                    background: rgba(29, 39, 58, 0.96) !important;
+                    border-color: #94A3B8 !important;
+                    box-shadow: 0 6px 0px #111722 !important;
                 }
-                body.theme-night .mobile-nav-item {
-                    color: #B8C7E0 !important;
+                body.theme-night .mobile-nav-item,
+                body.theme-night .mobile-nav-item span {
+                    color: #CBD5E1 !important;
                 }
-                body.theme-night .mobile-nav-item.active {
-                    color: #3A2B1E !important;
+                body.theme-night .mobile-nav-item.active,
+                body.theme-night .mobile-nav-item.active span {
+                    background-color: #FCE8A6 !important;
+                    color: #1F2937 !important;
                 }
                 body.theme-night input,
                 body.theme-night select,
                 body.theme-night textarea {
-                    background-color: #1A2230 !important;
-                    color: #F4EFE6 !important;
-                    border-color: #8FA3C4 !important;
+                    background-color: #18202E !important;
+                    color: #F3F4F6 !important;
+                    border-color: #94A3B8 !important;
                 }
                 body.theme-night .text-\\[\\#5C4938\\] {
-                    color: #F4EFE6 !important;
+                    color: #F3F4F6 !important;
                 }
                 body.theme-night .text-\\[\\#857262\\],
                 body.theme-night .text-\\[\\#8C7A6B\\] {
-                    color: #B8C7E0 !important;
+                    color: #CBD5E1 !important;
                 }
                 body.theme-night .bg-white,
                 body.theme-night .bg-\\[\\#FAF6F0\\],
                 body.theme-night .bg-\\[\\#FFFDF9\\],
                 body.theme-night .bg-\\[\\#FFFDF7\\],
                 body.theme-night .bg-\\[\\#FFF9E6\\] {
-                    background-color: #253044 !important;
-                }
-                body.theme-night .capsule-btn.active,
-                body.theme-night .notebook-tab.active,
-                body.theme-night .mobile-nav-item.active {
-                    color: #3A2B1E !important;
-                }
-                body.theme-night .capsule-btn.active span,
-                body.theme-night .notebook-tab.active span,
-                body.theme-night .mobile-nav-item.active span {
-                    color: #3A2B1E !important;
+                    background-color: #253147 !important;
                 }
             `;
             document.head.appendChild(style);
