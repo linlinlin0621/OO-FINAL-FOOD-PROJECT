@@ -5129,8 +5129,9 @@
                 this.syncAllUI();
             }
 
-            if (this.toggleModalAction(action, el)) return;
+            
             handleAction(action, el) {
+                if (this.toggleModalAction(action, el)) return;
                 const storeName = el.dataset.store;
                 switch (action) {
                     case 'cycle-mood': {
