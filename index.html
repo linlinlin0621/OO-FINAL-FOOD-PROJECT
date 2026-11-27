@@ -5842,5 +5842,191 @@
         });
     })();
     </script>
+    <script>
+    (() => {
+        'use strict';
+
+        const THEME_STORAGE_KEY = 'shiami_time_theme_mode_v1';
+        const MODES = ['auto', 'day', 'sunset', 'night'];
+        const LABELS = {
+            auto: '自動時段',
+            day: '米黃白天',
+            sunset: '焦糖傍晚',
+            night: '深藍夜晚'
+        };
+
+        let currentSetting = 'auto';
+        try {
+            const saved = localStorage.getItem(THEME_STORAGE_KEY);
+            if (saved && MODES.includes(saved)) currentSetting = saved;
+        } catch (_) {}
+
+        function detectTimeTheme() {
+            const hour = new Date().getHours();
+            if (hour >= 5 && hour < 17) return 'day';
+            if (hour >= 17 && hour < 19) return 'sunset';
+            return 'night';
+        }
+
+        function injectThemeStyles() {
+            if (document.getElementById('shiami-time-theme-style')) return;
+            const style = document.createElement('style');
+            style.id = 'shiami-time-theme-style';
+            style.textContent = `
+                /* 傍晚：焦糖橘氛圍 */
+                body.theme-sunset {
+                    background-color: #FBE8D3 !important;
+                    background-image:
+                        radial-gradient(#E8C7A5 1.4px, transparent 1.4px),
+                        radial-gradient(#F3D6B8 1.4px, #FBE8D3 1.4px) !important;
+                }
+                body.theme-sunset .corner-wall-bg {
+                    background: linear-gradient(135deg, #F6DEC2 0%, #FBE8D3 55%, #FFF8EE 100%) !important;
+                }
+
+                /* 晚上：深藍灰護眼氛圍 */
+                body.theme-night {
+                    background-color: #1B2332 !important;
+                    color: #F4EFE6 !important;
+                    background-image:
+                        radial-gradient(#2A354B 1.4px, transparent 1.4px),
+                        radial-gradient(#222C3F 1.4px, #1B2332 1.4px) !important;
+                }
+                body.theme-night .sumikko-card,
+                body.theme-night .sumikko-card-sm,
+                body.theme-night .sumikko-map-wrapper,
+                body.theme-night .polaroid-frame {
+                    background-color: #253044 !important;
+                    color: #F4EFE6 !important;
+                    border-color: #8FA3C4 !important;
+                    box-shadow: 0 4px 0px #121824 !important;
+                }
+                body.theme-night .corner-wall-bg {
+                    background: linear-gradient(135deg, #273349 0%, #1F293B 60%, #1B2332 100%) !important;
+                }
+                body.theme-night .capsule-btn,
+                body.theme-night .notebook-tab {
+                    background-color: #2C3950 !important;
+                    color: #F4EFE6 !important;
+                    border-color: #8FA3C4 !important;
+                    box-shadow: 0 3px 0px #121824 !important;
+                }
+                body.theme-night .capsule-btn.active,
+                body.theme-night .notebook-tab.active {
+                    color: #3A2B1E !important;
+                }
+                body.theme-night .mobile-bottom-nav {
+                    background: rgba(31, 41, 59, 0.96) !important;
+                    border-color: #8FA3C4 !important;
+                    box-shadow: 0 6px 0px #121824 !important;
+                }
+                body.theme-night .mobile-nav-item {
+                    color: #B8C7E0 !important;
+                }
+                body.theme-night .mobile-nav-item.active {
+                    color: #3A2B1E !important;
+                }
+                body.theme-night input,
+                body.theme-night select,
+                body.theme-night textarea {
+                    background-color: #1A2230 !important;
+                    color: #F4EFE6 !important;
+                    border-color: #8FA3C4 !important;
+                }
+                body.theme-night .text-\\[\\#5C4938\\] {
+                    color: #F4EFE6 !important;
+                }
+                body.theme-night .text-\\[\\#857262\\],
+                body.theme-night .text-\\[\\#8C7A6B\\] {
+                    color: #B8C7E0 !important;
+                }
+                body.theme-night .bg-white,
+                body.theme-night .bg-\\[\\#FAF6F0\\],
+                body.theme-night .bg-\\[\\#FFFDF9\\],
+                body.theme-night .bg-\\[\\#FFFDF7\\],
+                body.theme-night .bg-\\[\\#FFF9E6\\] {
+                    background-color: #253044 !important;
+                }
+                body.theme-night .capsule-btn.active,
+                body.theme-night .notebook-tab.active,
+                body.theme-night .mobile-nav-item.active {
+                    color: #3A2B1E !important;
+                }
+                body.theme-night .capsule-btn.active span,
+                body.theme-night .notebook-tab.active span,
+                body.theme-night .mobile-nav-item.active span {
+                    color: #3A2B1E !important;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        function applyTheme() {
+            const effective = currentSetting === 'auto' ? detectTimeTheme() : currentSetting;
+            document.body.classList.remove('theme-day', 'theme-sunset', 'theme-night');
+            document.body.classList.add(`theme-${effective}`);
+
+            const switcher = document.getElementById('shiami-theme-switcher');
+            if (switcher) {
+                switcher.querySelectorAll('[data-theme-mode]').forEach((btn) => {
+                    btn.classList.toggle('active', btn.dataset.themeMode === currentSetting);
+                });
+            }
+        }
+
+        function mountThemeSwitcher() {
+            if (document.getElementById('shiami-theme-switcher')) return;
+            const header = document.querySelector('header');
+            if (!header) return;
+
+            const bar = document.createElement('div');
+            bar.id = 'shiami-theme-switcher';
+            bar.className = 'mt-3 pt-3 border-t-2 border-dashed border-[#DFD5C6] flex flex-wrap items-center justify-between gap-2 relative z-10';
+            bar.innerHTML = `
+                <span class="text-xs font-black opacity-80">🎨 介面色系（目前：${currentSetting === 'auto' ? '自動 · ' + LABELS[detectTimeTheme()] : LABELS[currentSetting]}）</span>
+                <div class="flex flex-wrap items-center gap-1.5">
+                    ${MODES.map((m) => `
+                        <button type="button" data-theme-mode="${m}"
+                            class="px-2.5 py-1 rounded-full border-2 border-[#5C4938] text-[11px] font-black bg-white text-[#5C4938] cursor-pointer transition ${currentSetting === m ? 'active bg-[#FCE8A6]' : ''}">
+                            ${LABELS[m]}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+
+            header.appendChild(bar);
+
+            bar.querySelectorAll('[data-theme-mode]').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    currentSetting = btn.dataset.themeMode;
+                    try {
+                        localStorage.setItem(THEME_STORAGE_KEY, currentSetting);
+                    } catch (_) {}
+                    applyTheme();
+                    const labelEl = bar.querySelector('span');
+                    if (labelEl) {
+                        labelEl.textContent = `🎨 介面色系（目前：${currentSetting === 'auto' ? '自動 · ' + LABELS[detectTimeTheme()] : LABELS[currentSetting]}）`;
+                    }
+                    window.shiamiApp?.notifier?.show(`介面色系已切換為「${LABELS[currentSetting]}」！`);
+                });
+            });
+        }
+
+        function boot() {
+            injectThemeStyles();
+            mountThemeSwitcher();
+            applyTheme();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', boot);
+        } else {
+            boot();
+        }
+        setInterval(() => {
+            if (currentSetting === 'auto') applyTheme();
+        }, 60000);
+    })();
+    </script>
 </body>
 </html>
