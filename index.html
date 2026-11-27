@@ -5963,6 +5963,24 @@
                 body.theme-night .bg-\\[\\#FFF9E6\\] {
                     background-color: #253147 !important;
                 }
+                /* 修正淺黃底 / 亮橘底徽章在深藍夜晚的反白問題 */
+                body.theme-night .bg-\[\#FCE8A6\],
+                body.theme-night .bg-\[\#FCE8A6\] span {
+                    background-color: #FCE8A6 !important;
+                    color: #1E293B !important;
+                }
+                body.theme-night .bg-\[\#F7A072\].text-white,
+                body.theme-night .bg-\[\#F7A072\].text-white span {
+                    background-color: #D97742 !important;
+                    color: #F8FAFC !important;
+                }
+                body.theme-night #btn-start-quiz-top,
+                body.theme-night #btn-start-quiz-top span,
+                body.theme-night #btn-start-catcher,
+                body.theme-night #btn-start-catcher span {
+                    background-color: #D97742 !important;
+                    color: #F8FAFC !important;
+                }
             `;
             document.head.appendChild(style);
         }
