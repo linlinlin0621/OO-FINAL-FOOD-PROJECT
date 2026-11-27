@@ -473,6 +473,35 @@
                 margin: 8px 10px !important;
             }
         }
+        /* 第 4 項新增：水晶球、塔羅牌與龜殼卜卦專屬動畫 */
+        @keyframes crystalGlowPulse {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px rgba(217, 200, 236, 0.8)); }
+            50% { transform: scale(1.06); filter: drop-shadow(0 0 18px rgba(247, 160, 114, 0.95)); }
+        }
+        .crystal-divining {
+            animation: crystalGlowPulse 0.65s ease-in-out infinite;
+        }
+
+        @keyframes tarotShuffle {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            25% { transform: translateX(-14px) rotate(-8deg); }
+            50% { transform: translateX(14px) rotate(8deg); }
+            75% { transform: translateX(-8px) rotate(-4deg); }
+        }
+        .tarot-shuffling {
+            animation: tarotShuffle 0.55s ease-in-out infinite;
+        }
+
+        @keyframes tortoiseRattle {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(-6px, -8px) rotate(-12deg); }
+            40% { transform: translate(6px, -10px) rotate(12deg); }
+            60% { transform: translate(-5px, -6px) rotate(-8deg); }
+            80% { transform: translate(5px, -8px) rotate(8deg); }
+        }
+        .tortoise-shaking {
+            animation: tortoiseRattle 0.45s ease-in-out infinite;
+        }
     </style>
 </head>
 <body class="relative pt-5 pb-28 sm:py-6 px-3.5 sm:px-6 lg:px-8 flex flex-col items-center">
