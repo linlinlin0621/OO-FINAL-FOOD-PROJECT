@@ -5873,120 +5873,24 @@
             const style = document.createElement('style');
             style.id = 'shiami-time-theme-style';
             style.textContent = `
-                /* 傍晚：焦糖橘氛圍 */
+                /* 只變換最外圍背景色，內部介面與文字顏色維持原樣 */
+                body.theme-day {
+                    background-color: #FAF6F0 !important;
+                    background-image:
+                        radial-gradient(#E5DDD0 1.4px, transparent 1.4px),
+                        radial-gradient(#EFE8DC 1.4px, #FAF6F0 1.4px) !important;
+                }
                 body.theme-sunset {
-                    background-color: #FBE8D3 !important;
+                    background-color: #F3C694 !important;
                     background-image:
-                        radial-gradient(#E8C7A5 1.4px, transparent 1.4px),
-                        radial-gradient(#F3D6B8 1.4px, #FBE8D3 1.4px) !important;
+                        radial-gradient(#DFAA72 1.4px, transparent 1.4px),
+                        radial-gradient(#EBB984 1.4px, #F3C694 1.4px) !important;
                 }
-                body.theme-sunset .corner-wall-bg {
-                    background: linear-gradient(135deg, #F6DEC2 0%, #FBE8D3 55%, #FFF8EE 100%) !important;
-                }
-
-                /* 晚上：深藍灰護眼氛圍 */
                 body.theme-night {
-                    background-color: #1B2332 !important;
-                    color: #E5E7EB !important;
+                    background-color: #1E293B !important;
                     background-image:
-                        radial-gradient(#2D3B54 1.4px, transparent 1.4px),
-                        radial-gradient(#232E42 1.4px, #1B2332 1.4px) !important;
-                }
-                body.theme-night .sumikko-card,
-                body.theme-night .sumikko-card-sm,
-                body.theme-night .sumikko-map-wrapper,
-                body.theme-night .polaroid-frame {
-                    background-color: #253147 !important;
-                    color: #F3F4F6 !important;
-                    border-color: #94A3B8 !important;
-                    box-shadow: 0 4px 0px #111722 !important;
-                }
-                body.theme-night .corner-wall-bg {
-                    background: linear-gradient(135deg, #283650 0%, #1E293B 60%, #1B2332 100%) !important;
-                }
-
-                /* 晚上一般按鈕與分頁：淺灰字配深藍底 */
-                body.theme-night .capsule-btn,
-                body.theme-night .notebook-tab {
-                    background-color: #2E3C56 !important;
-                    color: #E5E7EB !important;
-                    border-color: #94A3B8 !important;
-                    box-shadow: 0 3px 0px #111722 !important;
-                }
-                body.theme-night .capsule-btn span,
-                body.theme-night .notebook-tab span {
-                    color: #E5E7EB !important;
-                }
-
-                /* 晚上已選中按鈕：明亮奶油黃底配深灰字 */
-                body.theme-night .capsule-btn.active,
-                body.theme-night .capsule-btn.active span,
-                body.theme-night .notebook-tab.active,
-                body.theme-night .notebook-tab.active span {
-                    background-color: #FCE8A6 !important;
-                    color: #1E293B !important;
-                    border-color: #F3F4F6 !important;
-                    box-shadow: 0 2px 0px #111722 !important;
-                }
-
-                /* 晚上手機底部導覽列 */
-                body.theme-night .mobile-bottom-nav {
-                    background: rgba(29, 39, 58, 0.96) !important;
-                    border-color: #94A3B8 !important;
-                    box-shadow: 0 6px 0px #111722 !important;
-                }
-                body.theme-night .mobile-nav-item,
-                body.theme-night .mobile-nav-item span {
-                    color: #E5E7EB !important;
-                }
-                body.theme-night .mobile-nav-item.active,
-                body.theme-night .mobile-nav-item.active span {
-                    background-color: #FCE8A6 !important;
-                    color: #1E293B !important;
-                }
-
-                /* 輸入框與一般文字：統一淺灰 */
-                body.theme-night input,
-                body.theme-night select,
-                body.theme-night textarea {
-                    background-color: #18202E !important;
-                    color: #F3F4F6 !important;
-                    border-color: #94A3B8 !important;
-                }
-                body.theme-night .text-\\[\\#5C4938\\],
-                body.theme-night .text-\\[\\#857262\\],
-                body.theme-night .text-\\[\\#8C7A6B\\] {
-                    color: #E5E7EB !important;
-                }
-
-                /* 所有淺色粉彩底徽章（黃／粉／綠／紫／藍）：統一深灰字，不再白字看不見 */
-                body.theme-night [class*="bg-[#FCE8A6]"],
-                body.theme-night [class*="bg-[#FCE8A6]"] span,
-                body.theme-night [class*="bg-[#F9C5BD]"],
-                body.theme-night [class*="bg-[#F9C5BD]"] span,
-                body.theme-night [class*="bg-[#A8D8B9]"],
-                body.theme-night [class*="bg-[#A8D8B9]"] span,
-                body.theme-night [class*="bg-[#D9C8EC]"],
-                body.theme-night [class*="bg-[#D9C8EC]"] span,
-                body.theme-night [class*="bg-[#BBE2F2]"],
-                body.theme-night [class*="bg-[#BBE2F2]"] span {
-                    color: #1E293B !important;
-                }
-
-                /* 橘色按鈕/徽章：暖焦糖底配淺灰字，對比清楚不刺眼 */
-                body.theme-night [class*="bg-[#F7A072]"].text-white,
-                body.theme-night [class*="bg-[#F7A072]"].text-white span,
-                body.theme-night #btn-start-quiz-top,
-                body.theme-night #btn-start-quiz-top span,
-                body.theme-night #btn-start-catcher,
-                body.theme-night #btn-start-catcher span {
-                    background-color: #C96A38 !important;
-                    color: #F3F4F6 !important;
-                }
-
-                /* 轉盤與小圖示內的深咖啡色文字，在夜晚改成好讀的淺灰／亮奶油色 */
-                body.theme-night svg text[fill="#5C4938"] {
-                    fill: #F3F4F6 !important;
+                        radial-gradient(#334155 1.4px, transparent 1.4px),
+                        radial-gradient(#273549 1.4px, #1E293B 1.4px) !important;
                 }
             `;
             document.head.appendChild(style);
